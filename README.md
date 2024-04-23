@@ -1,6 +1,6 @@
 # HRL (Human-Robot Language)
 
-HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development.
+HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development. Programming in HRL is conceptually similar to creating a finite state machine (FSM), especially when dealing with context management and state transitions.
 
 ## Key Features
 
@@ -14,7 +14,7 @@ HRL is a language prototype specifically designed to help developers and product
 
 - **Setup-Loop by Default**: Programs by default run in an infinite main loop after setup, allowing for continuous execution and monitoring of the system.
 
-- **Easy Integration**: HRL code can easily call scripts written in Python, C++ and other languages and capture their output. This makes it very easy to integrate existing models and libraries, so you can focus on the high-level pipeline and logic.
+- **Easy Integration**: HRL code can easily call scripts written in Python, C++ and other languages and capture their output. This makes it very easy to integrate existing models and libraries for common agent tasks (e.g., natural language processing, vision models, audio models, path planning, etc.), so you can focus on the higher-level logic.
 
 ## Example Code (under development)
 
