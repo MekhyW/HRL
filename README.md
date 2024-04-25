@@ -16,7 +16,7 @@ HRL is a language prototype specifically designed to help developers and product
 
 - **Easy Integration**: HRL code can easily call scripts written in Python, C++ and other languages and capture their output. This makes it very easy to integrate existing models and libraries for common agent tasks (e.g., natural language processing, vision models, audio models, path planning, etc.), so you can focus on the higher-level logic.
 
-## Example Code (under development)
+## Example Code
 
 ```hrl
 // Define context IDs
@@ -44,19 +44,18 @@ enum Topic {
 behavior generalContext(session: Session) {
     loop {
         // Listen for user input
-        userInput := waitForUserInput(session.id)
+        const userInput = waitForUserInput(session.id);
 
         // Publish user input to topic
-        publishToTopic(Topic.UserInput, userInput)
+        publishToTopic(Topic.UserInput, userInput);
 
         // Process user input based on context
-        switch userInput {
-            case "start task":
-                switchContext(session, Context.Task)
-            case "error":
-                switchContext(session, Context.ErrorHandling)
-            default:
-                respond(session.id, "Sorry, I didn't understand.")
+        if (userInput == "start task") {
+            switchContext(session, Context.Task);
+        } else if (userInput == "error") {
+            switchContext(session, Context.ErrorHandling);
+        } else {
+            respond(session.id, "Sorry, I didn't understand.");
         }
     }
 }
@@ -64,15 +63,15 @@ behavior generalContext(session: Session) {
 behavior taskContext(session: Session) {
     loop {
         // Perform task-specific operations
-        performTask(session.id)
+        performTask(session.id);
 
         // Publish task completion to topic
-        publishToTopic(Topic.TaskCompleted, session.id)
+        publishToTopic(Topic.TaskCompleted, session.id);
 
         // Listen for user input to switch context
-        userInput := waitForUserInput(session.id)
-        if userInput == "exit" {
-            switchContext(session, Context.General)
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "exit") {
+            switchContext(session, Context.General);
         }
     }
 }
@@ -80,31 +79,31 @@ behavior taskContext(session: Session) {
 behavior errorHandlingContext(session: Session) {
     loop {
         // Handle errors
-        handleError(session.id)
+        handleError(session.id);
 
         // Publish error to topic
-        publishToTopic(Topic.ErrorOccurred, session.id)
+        publishToTopic(Topic.ErrorOccurred, session.id);
 
         // Listen for user input to switch context
-        userInput := waitForUserInput(session.id)
-        if userInput == "retry" {
-            switchContext(session, Context.General)
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "retry") {
+            switchContext(session, Context.General);
         }
     }
 }
 
 setup {
     // Start pub/sub system
-    startPubSubSystem()
+    startPubSubSystem();
 
     // Create sessions for each chat
-    sessions := createSessions()
+    const sessions = createSessions();
 
     // Start context-specific behaviors for each session in parallel
-    for session in sessions {
-        start generalContext(session)
-        start taskContext(session)
-        start errorHandlingContext(session)
+    for (const session in sessions) {
+        threadloop generalContext(session);
+        threadloop taskContext(session);
+        threadloop errorHandlingContext(session);
     }
 }
 
@@ -113,3 +112,43 @@ main {
 }
 
 ```
+
+## EBNF (Extended Backus-Naur Form) Grammar
+
+<li>PROGRAM = SETUP, MAIN;
+<li>SETUP = "setup", "{", STATEMENTS, "}";
+<li>MAIN = "main", "{", STATEMENTS, "}";
+<li>STATEMENTS = (VARIABLE_DECLARATION | ENUM_DECLARATION | STRUCT_DECLARATION | BEHAVIOR_DECLARATION | LOOP_STATEMENT | IF_STATEMENT | SWITCH_STATEMENT | FUNCTION_CALL_STATEMENT | CONST_DECLARATION | THREADLOOP_STATEMENT), ";";
+<li>VARIABLE_DECLARATION = ("const" | λ), IDENTIFIER, ":", TYPE, "=", EXPRESSION;
+<li>ENUM_DECLARATION = "enum", IDENTIFIER, "{", ENUM_MEMBER, { ",", ENUM_MEMBER }, "}";
+<li>ENUM_MEMBER = IDENTIFIER;
+<li>STRUCT_DECLARATION = "struct", IDENTIFIER, "{", VARIABLE_DECLARATION, { ",", VARIABLE_DECLARATION }, "}";
+<li>BEHAVIOR_DECLARATION = "behavior", IDENTIFIER, "(", PARAMETERS, ")", BLOCK;
+<li>PARAMETERS = (PARAMETER, { ",", PARAMETER });
+<li>PARAMETER = IDENTIFIER, ":", TYPE;
+<li>BLOCK = "{", STATEMENTS, "}";
+<li>LOOP_STATEMENT = "loop", BLOCK;
+<li>IF_STATEMENT = "if", "(", EXPRESSION, ")", BLOCK, ("else", BLOCK)?;
+<li>SWITCH_STATEMENT = "switch", EXPRESSION, "{", CASE_BLOCK, "}";
+<li>CASE_BLOCK = "case", EXPRESSION, ":", STATEMENTS;
+<li>FUNCTION_CALL_STATEMENT = IDENTIFIER, "(", ARGUMENTS, ")";
+<li>ARGUMENTS = EXPRESSION, { ",", EXPRESSION };
+<li>CONST_DECLARATION = "const", IDENTIFIER, "=", EXPRESSION;
+<li>THREADLOOP_STATEMENT = "threadloop", IDENTIFIER, "(", ARGUMENTS, ")";
+<li>EXPRESSION = SIMPLE_EXPRESSION, { RELATIONAL_OPERATOR, SIMPLE_EXPRESSION };
+<li>RELATIONAL_OPERATOR = "==", "!=";
+<li>SIMPLE_EXPRESSION = IDENTIFIER | STRING_LITERAL | NUMBER_LITERAL | "(", EXPRESSION, ")" | <li>FUNCTION_CALL_STATEMENT | ARRAY_ACCESS;
+<li>IDENTIFIER = LETTER, { LETTER | DIGIT };
+<li>STRING_LITERAL = "\"", { LETTER | DIGIT | SPECIAL_CHARACTER }, "\"";
+<li>NUMBER_LITERAL = DIGIT+;
+<li>ARRAY_ACCESS = IDENTIFIER, "[", EXPRESSION, "]";
+<li>TYPE = IDENTIFIER;
+<li>IDENTIFIER = LETTER, { LETTER | DIGIT | "_" };
+<li>LETTER = ("a" | ... | "z" | "A" | ... | "Z");
+<li>DIGIT = ("1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0");
+
+## Syntatic Diagram
+
+Generated using DrawGrammar (https://jacquev6.github.io/DrawGrammar/)
+
+![Syntactic Diagram](syntactic_diagram.png)
