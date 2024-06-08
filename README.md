@@ -1,6 +1,6 @@
 # HRL (Human-Robot Language)
 
-HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development. Programming in HRL is conceptually similar to creating a finite state machine (FSM), especially when dealing with context management and state transitions.
+HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development. Programming in HRL can be viewed as being conceptually similar to creating a finite state machine (FSM), especially when dealing with context management and state transitions.
 
 ## Key Features
 
@@ -100,17 +100,78 @@ setup {
     const sessions = createSessions();
 
     // Start context-specific behaviors for each session in parallel
-    for (const session in sessions) {
-        threadloop generalContext(session);
-        threadloop taskContext(session);
-        threadloop errorHandlingContext(session);
+    loop {
+        session = sessions.pop();
+        if (session.context == Context.General) {
+            startBehavior(generalContext, session);
+        } else if (session.context == Context.Task) {
+            startBehavior(taskContext, session);
+        } else if (session.context == Context.ErrorHandling) {
+            startBehavior(errorHandlingContext, session);
+        }
+        if (sessions.isEmpty()) {
+            break;
+        }
     }
 }
 
 main {
     // Any main loop tasks here
 }
+```
 
+## Integrations
+
+The following subscript demonstrates how the language can be used to integrate different services and other scripts. 
+
+In this example, the language is used to create a simple chatbot that can detect objects in images and generate descriptions for them using AI models and text-to-speech services, by calling OpenCV, MetaAISAM, Google Cloud Text-to-Speech, and a custom Python script for image capture (whose terminal output is captured and returned as a string).
+
+No import statements are needed, as the language is designed to be able to call external scripts and services directly, locating the dependencies automatically.
+
+```hrl
+behavior objectDetectionContext(session: Session) {
+    loop {
+        image = opencv.captureImage(session.id);
+        objects = metaAISAM.segment(image);
+        publishToTopic(Topic.ObjectDetected, objects);
+        switchContext(session, Context.Description);
+    }
+}
+
+behavior descriptionContext(session: Session) {
+    loop {
+        objects = waitForMessage(Topic.ObjectDetected);
+        description = generateDescription(objects);
+        googleCloudTTS.speak(session.id, description);
+        publishToTopic(Topic.DescriptionCompleted, session.id);
+        switchContext(session, Context.Idle);
+    }
+}
+
+behavior idleContext(session: Session) {
+    loop {
+        trigger = waitForImageCaptureTrigger(session.id);
+        if (trigger == "capture") {
+            switchContext(session, Context.ObjectDetection);
+        }
+    }
+}
+
+function generateDescription(objects: List<Object>): String {
+    description = "Detected objects: ";
+    loop {
+        object = objects.pop();
+        description += object.name + ", ";
+        if (objects.isEmpty()) {
+            break;
+        }
+    }
+    return description.trim();
+}
+
+function waitForImageCaptureTrigger(sessionId: String): String {
+    return python.runScript("image_capture.py", sessionId);
+}
 ```
 
 ## EBNF (Extended Backus-Naur Form) Grammar
@@ -118,8 +179,8 @@ main {
 <li>PROGRAM = SETUP, MAIN;
 <li>SETUP = "setup", "{", STATEMENTS, "}";
 <li>MAIN = "main", "{", STATEMENTS, "}";
-<li>STATEMENTS = (VARIABLE_DECLARATION | ENUM_DECLARATION | STRUCT_DECLARATION | BEHAVIOR_DECLARATION | LOOP_STATEMENT | IF_STATEMENT | SWITCH_STATEMENT | FUNCTION_CALL_STATEMENT | CONST_DECLARATION | THREADLOOP_STATEMENT), ";";
-<li>VARIABLE_DECLARATION = ("const" | λ), IDENTIFIER, ":", TYPE, "=", EXPRESSION;
+<li>STATEMENTS = (VARIABLE_DECLARATION | ENUM_DECLARATION | STRUCT_DECLARATION | BEHAVIOR_DECLARATION | LOOP_STATEMENT | IF_STATEMENT | SWITCH_STATEMENT | FUNCTION_CALL_STATEMENT | FUNCTION_DECLARATION | CONST_DECLARATION | THREADLOOP_STATEMENT | BREAK_STATEMENT | CONTINUE_STATEMENT), ";";
+<li>VARIABLE_DECLARATION = ("const" | lambda), IDENTIFIER, ":", TYPE, "=", EXPRESSION;
 <li>ENUM_DECLARATION = "enum", IDENTIFIER, "{", ENUM_MEMBER, { ",", ENUM_MEMBER }, "}";
 <li>ENUM_MEMBER = IDENTIFIER;
 <li>STRUCT_DECLARATION = "struct", IDENTIFIER, "{", VARIABLE_DECLARATION, { ",", VARIABLE_DECLARATION }, "}";
@@ -128,24 +189,27 @@ main {
 <li>PARAMETER = IDENTIFIER, ":", TYPE;
 <li>BLOCK = "{", STATEMENTS, "}";
 <li>LOOP_STATEMENT = "loop", BLOCK;
-<li>IF_STATEMENT = "if", "(", EXPRESSION, ")", BLOCK, ("else", BLOCK)?;
-<li>SWITCH_STATEMENT = "switch", EXPRESSION, "{", CASE_BLOCK, "}";
+<li>IF_STATEMENT = "if", "(", EXPRESSION, ")", BLOCK, ["else", BLOCK];
+<li>SWITCH_STATEMENT = "switch", EXPRESSION, "{", CASE_BLOCK, { CASE_BLOCK }, "}";
 <li>CASE_BLOCK = "case", EXPRESSION, ":", STATEMENTS;
-<li>FUNCTION_CALL_STATEMENT = IDENTIFIER, "(", ARGUMENTS, ")";
+<li>FUNCTION_CALL_STATEMENT = IDENTIFIER, "(", [ARGUMENTS], ")";
 <li>ARGUMENTS = EXPRESSION, { ",", EXPRESSION };
+<li>FUNCTION_DECLARATION = "function", IDENTIFIER, "(", PARAMETERS, ")", ":", TYPE, BLOCK;
 <li>CONST_DECLARATION = "const", IDENTIFIER, "=", EXPRESSION;
 <li>THREADLOOP_STATEMENT = "threadloop", IDENTIFIER, "(", ARGUMENTS, ")";
+<li>BREAK_STATEMENT = "break";
+<li>CONTINUE_STATEMENT = "continue";
 <li>EXPRESSION = SIMPLE_EXPRESSION, { RELATIONAL_OPERATOR, SIMPLE_EXPRESSION };
 <li>RELATIONAL_OPERATOR = "==", "!=";
-<li>SIMPLE_EXPRESSION = IDENTIFIER | STRING_LITERAL | NUMBER_LITERAL | "(", EXPRESSION, ")" | <li>FUNCTION_CALL_STATEMENT | ARRAY_ACCESS;
-<li>IDENTIFIER = LETTER, { LETTER | DIGIT };
-<li>STRING_LITERAL = "\"", { LETTER | DIGIT | SPECIAL_CHARACTER }, "\"";
-<li>NUMBER_LITERAL = DIGIT+;
-<li>ARRAY_ACCESS = IDENTIFIER, "[", EXPRESSION, "]";
-<li>TYPE = IDENTIFIER;
+<li>SIMPLE_EXPRESSION = IDENTIFIER | STRING_LITERAL | NUMBER_LITERAL | "(", EXPRESSION, ")" | FUNCTION_CALL_STATEMENT | ARRAY_ACCESS | MEMBER_ACCESS;
 <li>IDENTIFIER = LETTER, { LETTER | DIGIT | "_" };
-<li>LETTER = ("a" | ... | "z" | "A" | ... | "Z");
-<li>DIGIT = ("1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0");
+<li>STRING_LITERAL = '"', { LETTER | DIGIT | SPECIAL_CHARACTER }, '"';
+<li>NUMBER_LITERAL = DIGIT, {DIGIT};
+<li>ARRAY_ACCESS = IDENTIFIER, "[", EXPRESSION, "]";
+<li>MEMBER_ACCESS = IDENTIFIER, ".", IDENTIFIER;
+<li>TYPE = IDENTIFIER;
+<li>LETTER = ("a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z");
+<li>DIGIT = ("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9");
 
 ## Syntatic Diagram
 
