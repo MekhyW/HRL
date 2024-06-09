@@ -41,17 +41,6 @@ public:
             current_token = tokenizer.selectNext();
             return declaration_node;
         }
-        else if (current_token.type == "PRINT") {
-            current_token = tokenizer.selectNext();
-            if (current_token.type != "LPAREN") { throw invalid_argument("Expected '(' after print keyword"); }
-            current_token = tokenizer.selectNext();
-            shared_ptr<Node> expression_node = parse_boolexpression();
-            if (current_token.type != "RPAREN") { throw invalid_argument("Expected ')' after print expression"); }
-            current_token = tokenizer.selectNext();
-            if (current_token.type != "NEWLINE") { throw invalid_argument("Expected newline after print statement"); }
-            current_token = tokenizer.selectNext();
-            return make_shared<PrintNode>(expression_node);
-        }
         else if (current_token.type == "WHILE") {
             current_token = tokenizer.selectNext();
             shared_ptr<Node> condition = parse_boolexpression();
@@ -245,14 +234,6 @@ public:
         else if (current_token.type == "NOT") {
             current_token = tokenizer.selectNext();
             return make_shared<UnOpNode>("not", parse_factor());
-        }
-        else if (current_token.type == "READ") {
-            current_token = tokenizer.selectNext();
-            if (current_token.type != "LPAREN") { throw invalid_argument("Expected '(' after read"); }
-            current_token = tokenizer.selectNext();
-            if (current_token.type != "RPAREN") { throw invalid_argument("Expected ')' after read"); }
-            current_token = tokenizer.selectNext();
-            return make_shared<ReadNode>();
         }
         else {
             string identifier = current_token.type;

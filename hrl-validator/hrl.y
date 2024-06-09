@@ -22,6 +22,7 @@ typedef struct {
 %token <num> NUMBER_LITERAL
 %token SETUP MAIN ENUM STRUCT BEHAVIOR LOOP IF ELSE SWITCH CASE CONST FUNCTION THREADLOOP BREAK CONTINUE RETURN TYPE
 %token EQ NEQ LT GT LEQ GEQ ASSIGN COLON COMMA SEMICOLON LBRACE RBRACE LPAREN RPAREN DOT LBRACKET RBRACKET
+%token PLUS MINUS MULT DIV MOD AND OR NOT CONCAT
 
 %start program
 
@@ -184,8 +185,23 @@ expression_opt:
 ;
 
 expression:
-    simple_expression
-    | simple_expression relational_operator simple_expression
+    logical_term
+    | logical_term OR expression
+;
+
+logical_term:
+    logical_factor
+    | logical_factor AND logical_term
+;
+
+logical_factor:
+    NOT logical_factor
+    | relational_expression
+;
+
+relational_expression:
+    concat_expression
+    | concat_expression relational_operator concat_expression
 ;
 
 relational_operator:
@@ -195,6 +211,31 @@ relational_operator:
     | GT
     | LEQ
     | GEQ
+;
+
+concat_expression:
+    arithmetic_expression
+    | arithmetic_expression CONCAT concat_expression
+;
+
+arithmetic_expression:
+    term
+    | term PLUS arithmetic_expression
+    | term MINUS arithmetic_expression
+;
+
+term:
+    factor
+    | factor MULT term
+    | factor DIV term
+    | factor MOD term
+;
+
+factor:
+    PLUS factor
+    | MINUS factor
+    | NOT factor
+    | simple_expression
 ;
 
 simple_expression:
