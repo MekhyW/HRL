@@ -195,7 +195,7 @@ public:
             Token op_token = current_token;
             current_token = tokenizer.selectNext();
             shared_ptr<Node> next_bool_term_node = parse_boolterm();
-            bool_expression_node = make_shared<BinOpNode>("||", bool_expression_node, next_bool_term_node);
+            bool_expression_node = make_shared<BinOpNode>("or", bool_expression_node, next_bool_term_node);
         }
         return bool_expression_node;
     }
@@ -206,7 +206,7 @@ public:
             Token op_token = current_token;
             current_token = tokenizer.selectNext();
             shared_ptr<Node> next_rel_expression_node = parse_relexpression();
-            bool_term_node = make_shared<BinOpNode>("&&", bool_term_node, next_rel_expression_node);
+            bool_term_node = make_shared<BinOpNode>("and", bool_term_node, next_rel_expression_node);
         }
         return bool_term_node;
     }
