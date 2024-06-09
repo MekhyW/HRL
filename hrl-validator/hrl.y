@@ -20,7 +20,7 @@ typedef struct {
 
 %token <str> IDENTIFIER STRING_LITERAL
 %token <num> NUMBER_LITERAL
-%token SETUP MAIN ENUM STRUCT BEHAVIOR LOOP IF ELSE SWITCH CASE CONST FUNCTION THREADLOOP BREAK CONTINUE RETURN TYPE
+%token SETUP MAIN ENUM STRUCT BEHAVIOR WHILE IF ELSE SWITCH CASE CONST FUNCTION THREADLOOP BREAK CONTINUE RETURN TYPE
 %token EQ NEQ LT GT LEQ GEQ ASSIGN COLON COMMA SEMICOLON LBRACE RBRACE LPAREN RPAREN DOT LBRACKET RBRACKET
 %token PLUS MINUS MULT DIV MOD AND OR NOT CONCAT
 
@@ -59,7 +59,7 @@ statement:
     | enum_declaration SEMICOLON
     | struct_declaration SEMICOLON
     | behavior_declaration
-    | loop_statement
+    | while_statement
     | if_statement
     | switch_statement
     | function_call_statement SEMICOLON
@@ -69,6 +69,10 @@ statement:
     | break_statement SEMICOLON
     | continue_statement SEMICOLON
     | return_statement SEMICOLON
+;
+
+while_statement:
+    WHILE LPAREN expression RPAREN block
 ;
 
 variable_declaration:
@@ -113,10 +117,6 @@ parameters:
 
 parameter:
     IDENTIFIER COLON TYPE
-;
-
-loop_statement:
-    LOOP block
 ;
 
 if_statement:

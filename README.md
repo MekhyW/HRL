@@ -104,17 +104,15 @@ main {
     sessions = createSessions();
 
     -- Start context-specific behaviors for each session in parallel
-    loop {
+    while (!sessions.isEmpty()) {
         session = sessions.pop();
-        if (session.context == Context.General) {
-            startBehavior(generalContext, session);
-        } else if (session.context == Context.Task) {
-            startBehavior(taskContext, session);
-        } else if (session.context == Context.ErrorHandling) {
-            startBehavior(errorHandlingContext, session);
-        }
-        if (sessions.isEmpty()) {
-            break;
+        switch (session.context) {
+            case Context.General:
+                startBehavior(generalContext, session);
+            case Context.Task:
+                startBehavior(taskContext, session);
+            case Context.ErrorHandling:
+                startBehavior(errorHandlingContext, session);
         }
     }
 }
@@ -179,7 +177,7 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 <li>PROGRAM = SETUP, MAIN;
 <li>SETUP = "setup", BLOCK;
 <li>MAIN = "main", BLOCK;
-<li>STATEMENTS = (VARIABLE_DECLARATION | ENUM_DECLARATION | STRUCT_DECLARATION | BEHAVIOR_DECLARATION | LOOP_STATEMENT | IF_STATEMENT | SWITCH_STATEMENT | FUNCTION_CALL_STATEMENT | FUNCTION_DECLARATION | CONST_DECLARATION | THREADLOOP_STATEMENT | BREAK_STATEMENT | CONTINUE_STATEMENT | RETURN_STATEMENT), ";";
+<li>STATEMENTS = (VARIABLE_DECLARATION | ENUM_DECLARATION | STRUCT_DECLARATION | BEHAVIOR_DECLARATION | WHILE_STATEMENT | IF_STATEMENT | SWITCH_STATEMENT | FUNCTION_CALL_STATEMENT | FUNCTION_DECLARATION | CONST_DECLARATION | THREADLOOP_STATEMENT | BREAK_STATEMENT | CONTINUE_STATEMENT | RETURN_STATEMENT), ";";
 <li>VARIABLE_DECLARATION = IDENTIFIER, ":", TYPE, "=", EXPRESSION;
 <li>ENUM_DECLARATION = "enum", IDENTIFIER, "{", ENUM_MEMBER, { ",", ENUM_MEMBER }, "}";
 <li>ENUM_MEMBER = IDENTIFIER;
@@ -188,7 +186,7 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 <li>PARAMETERS = [(PARAMETER, { ",", PARAMETER })];
 <li>PARAMETER = IDENTIFIER, ":", TYPE;
 <li>BLOCK = "{", {STATEMENTS}, "}";
-<li>LOOP_STATEMENT = "loop", BLOCK;
+<li>WHILE_STATEMENT = "while", "(", EXPRESSION, ")", BLOCK;
 <li>IF_STATEMENT = "if", "(", EXPRESSION, ")", BLOCK, ["else", BLOCK];
 <li>SWITCH_STATEMENT = "switch", EXPRESSION, "{", CASE_BLOCK, { CASE_BLOCK }, "}";
 <li>CASE_BLOCK = "case", EXPRESSION, ":", STATEMENTS;

@@ -26,7 +26,7 @@ public:
         keywordMap["enum"] = "ENUM";
         keywordMap["struct"] = "STRUCT";
         keywordMap["behavior"] = "BEHAVIOR";
-        keywordMap["loop"] = "LOOP";
+        keywordMap["while"] = "WHILE";
         keywordMap["if"] = "IF";
         keywordMap["else"] = "ELSE";
         keywordMap["switch"] = "SWITCH";

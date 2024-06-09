@@ -9,7 +9,7 @@
 "enum"                    { return ENUM; }
 "struct"                  { return STRUCT; }
 "behavior"                { return BEHAVIOR; }
-"loop"                    { return LOOP; }
+"while"                   { return WHILE; }
 "if"                      { return IF; }
 "else"                    { return ELSE; }
 "switch"                  { return SWITCH; }
