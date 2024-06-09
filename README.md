@@ -43,6 +43,8 @@ setup {
     }
 
     -- Context-specific behaviors
+
+    -- Behavior for the general context
     behavior generalContext(session: Session) {
         loop {
             -- Listen for user input
@@ -62,6 +64,7 @@ setup {
         }
     }
 
+    -- Behavior for the task context
     behavior taskContext(session: Session) {
         loop {
             -- Perform task-specific operations
@@ -78,6 +81,7 @@ setup {
         }
     }
 
+    -- Behavior for the error handling context
     behavior errorHandlingContext(session: Session) {
         loop {
             -- Handle errors
@@ -106,14 +110,9 @@ main {
     -- Start context-specific behaviors for each session in parallel
     while (!sessions.isEmpty()) {
         session = sessions.pop();
-        switch (session.context) {
-            case Context.General:
-                startBehavior(generalContext, session);
-            case Context.Task:
-                startBehavior(taskContext, session);
-            case Context.ErrorHandling:
-                startBehavior(errorHandlingContext, session);
-        }
+        threadloop startBehavior(generalContext, session);
+        threadloop startBehavior(taskContext, session);
+        threadloop startBehavior(errorHandlingContext, session);
     }
 }
 ```
