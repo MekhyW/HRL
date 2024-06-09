@@ -6,7 +6,7 @@ LEX_FILE = hrl.l
 YACC_FILE = hrl.y
 LEX_OUTPUT = lex.yy.c
 YACC_OUTPUT = hrl.tab.c
-EXECUTABLE = hrl_compiler
+EXECUTABLE = hrl_validator
 
 FLEX_CMD = $(FLEX) $(LEX_FILE)
 BISON_CMD = $(BISON) -d $(YACC_FILE)

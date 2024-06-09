@@ -71,12 +71,7 @@ statement:
 ;
 
 variable_declaration:
-    const_opt IDENTIFIER COLON TYPE ASSIGN expression
-;
-
-const_opt:
-    /* empty */
-    | CONST
+    IDENTIFIER COLON TYPE ASSIGN expression
 ;
 
 enum_declaration:
