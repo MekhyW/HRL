@@ -19,39 +19,39 @@ HRL is a language prototype specifically designed to help developers and product
 ## Example Code
 
 ```hrl
-// Setup block will be executed once at the beginning of execution
+-- Setup block will be executed once at the beginning of execution
 setup {
-    // Define context IDs
+    -- Define context IDs
     enum Context {
         General,
         Task,
         ErrorHandling
     }
 
-    // Define session data structure
+    -- Define session data structure
     struct Session {
         id: String,
         context: Context,
-        // Other session data
+        -- Other session data
     }
 
-    // Define pub/sub topics
+    -- Define pub/sub topics
     enum Topic {
         UserInput,
         TaskCompleted,
         ErrorOccurred
     }
 
-    // Context-specific behaviors
+    -- Context-specific behaviors
     behavior generalContext(session: Session) {
         loop {
-            // Listen for user input
+            -- Listen for user input
             const userInput = waitForUserInput(session.id);
 
-            // Publish user input to topic
+            -- Publish user input to topic
             publishToTopic(Topic.UserInput, userInput);
 
-            // Process user input based on context
+            -- Process user input based on context
             if (userInput == "start task") {
                 switchContext(session, Context.Task);
             } else if (userInput == "error") {
@@ -64,13 +64,13 @@ setup {
 
     behavior taskContext(session: Session) {
         loop {
-            // Perform task-specific operations
+            -- Perform task-specific operations
             performTask(session.id);
 
-            // Publish task completion to topic
+            -- Publish task completion to topic
             publishToTopic(Topic.TaskCompleted, session.id);
 
-            // Listen for user input to switch context
+            -- Listen for user input to switch context
             const userInput = waitForUserInput(session.id);
             if (userInput == "exit") {
                 switchContext(session, Context.General);
@@ -80,13 +80,13 @@ setup {
 
     behavior errorHandlingContext(session: Session) {
         loop {
-            // Handle errors
+            -- Handle errors
             handleError(session.id);
 
-            // Publish error to topic
+            -- Publish error to topic
             publishToTopic(Topic.ErrorOccurred, session.id);
 
-            // Listen for user input to switch context
+            -- Listen for user input to switch context
             const userInput = waitForUserInput(session.id);
             if (userInput == "retry") {
                 switchContext(session, Context.General);
@@ -94,16 +94,16 @@ setup {
         }
     }
 
-    // Start pub/sub system
+    -- Start pub/sub system
     startPubSubSystem();
 }
 
-// Main block will be executed in an infinite loop after setup
+-- Main block will be executed in an infinite loop after setup
 main {
-    // Create sessions for each unattended chat
+    -- Create sessions for each unattended chat
     sessions = createSessions();
 
-    // Start context-specific behaviors for each session in parallel
+    -- Start context-specific behaviors for each session in parallel
     loop {
         session = sessions.pop();
         if (session.context == Context.General) {
