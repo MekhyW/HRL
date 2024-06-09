@@ -19,83 +19,87 @@ HRL is a language prototype specifically designed to help developers and product
 ## Example Code
 
 ```hrl
-// Define context IDs
-enum Context {
-    General,
-    Task,
-    ErrorHandling
-}
-
-// Define session data structure
-struct Session {
-    id: String,
-    context: Context,
-    // Other session data
-}
-
-// Define pub/sub topics
-enum Topic {
-    UserInput,
-    TaskCompleted,
-    ErrorOccurred
-}
-
-// Context-specific behaviors
-behavior generalContext(session: Session) {
-    loop {
-        // Listen for user input
-        const userInput = waitForUserInput(session.id);
-
-        // Publish user input to topic
-        publishToTopic(Topic.UserInput, userInput);
-
-        // Process user input based on context
-        if (userInput == "start task") {
-            switchContext(session, Context.Task);
-        } else if (userInput == "error") {
-            switchContext(session, Context.ErrorHandling);
-        } else {
-            respond(session.id, "Sorry, I didn't understand.");
-        }
-    }
-}
-
-behavior taskContext(session: Session) {
-    loop {
-        // Perform task-specific operations
-        performTask(session.id);
-
-        // Publish task completion to topic
-        publishToTopic(Topic.TaskCompleted, session.id);
-
-        // Listen for user input to switch context
-        const userInput = waitForUserInput(session.id);
-        if (userInput == "exit") {
-            switchContext(session, Context.General);
-        }
-    }
-}
-
-behavior errorHandlingContext(session: Session) {
-    loop {
-        // Handle errors
-        handleError(session.id);
-
-        // Publish error to topic
-        publishToTopic(Topic.ErrorOccurred, session.id);
-
-        // Listen for user input to switch context
-        const userInput = waitForUserInput(session.id);
-        if (userInput == "retry") {
-            switchContext(session, Context.General);
-        }
-    }
-}
-
+// Setup block will be executed once at the beginning of execution
 setup {
+    // Define context IDs
+    enum Context {
+        General,
+        Task,
+        ErrorHandling
+    }
+
+    // Define session data structure
+    struct Session {
+        id: String,
+        context: Context,
+        // Other session data
+    }
+
+    // Define pub/sub topics
+    enum Topic {
+        UserInput,
+        TaskCompleted,
+        ErrorOccurred
+    }
+
+    // Context-specific behaviors
+    behavior generalContext(session: Session) {
+        loop {
+            // Listen for user input
+            const userInput = waitForUserInput(session.id);
+
+            // Publish user input to topic
+            publishToTopic(Topic.UserInput, userInput);
+
+            // Process user input based on context
+            if (userInput == "start task") {
+                switchContext(session, Context.Task);
+            } else if (userInput == "error") {
+                switchContext(session, Context.ErrorHandling);
+            } else {
+                respond(session.id, "Sorry, I didn't understand.");
+            }
+        }
+    }
+
+    behavior taskContext(session: Session) {
+        loop {
+            // Perform task-specific operations
+            performTask(session.id);
+
+            // Publish task completion to topic
+            publishToTopic(Topic.TaskCompleted, session.id);
+
+            // Listen for user input to switch context
+            const userInput = waitForUserInput(session.id);
+            if (userInput == "exit") {
+                switchContext(session, Context.General);
+            }
+        }
+    }
+
+    behavior errorHandlingContext(session: Session) {
+        loop {
+            // Handle errors
+            handleError(session.id);
+
+            // Publish error to topic
+            publishToTopic(Topic.ErrorOccurred, session.id);
+
+            // Listen for user input to switch context
+            const userInput = waitForUserInput(session.id);
+            if (userInput == "retry") {
+                switchContext(session, Context.General);
+            }
+        }
+    }
+
     // Start pub/sub system
     startPubSubSystem();
+}
 
+// Main block will be executed in an infinite loop after setup
+main {
     // Create sessions for each chat
     const sessions = createSessions();
 
@@ -113,10 +117,6 @@ setup {
             break;
         }
     }
-}
-
-main {
-    // Any main loop tasks here
 }
 ```
 
@@ -185,7 +185,7 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 <li>ENUM_MEMBER = IDENTIFIER;
 <li>STRUCT_DECLARATION = "struct", IDENTIFIER, "{", VARIABLE_DECLARATION, { ",", VARIABLE_DECLARATION }, "}";
 <li>BEHAVIOR_DECLARATION = "behavior", IDENTIFIER, "(", PARAMETERS, ")", BLOCK;
-<li>PARAMETERS = (PARAMETER, { ",", PARAMETER });
+<li>PARAMETERS = [(PARAMETER, { ",", PARAMETER })];
 <li>PARAMETER = IDENTIFIER, ":", TYPE;
 <li>BLOCK = "{", {STATEMENTS}, "}";
 <li>LOOP_STATEMENT = "loop", BLOCK;
