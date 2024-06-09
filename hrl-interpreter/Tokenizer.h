@@ -7,7 +7,7 @@ using namespace std;
 
 class Token {
 public:
-    string type;      
+    string type;
     int value;
     string valueString;
 };
@@ -54,14 +54,25 @@ public:
         keywordMap["."] = "DOT";
         keywordMap["["] = "LBRACKET";
         keywordMap["]"] = "RBRACKET";
+        keywordMap["+"] = "PLUS";
+        keywordMap["-"] = "MINUS";
+        keywordMap["*"] = "MULT";
+        keywordMap["/"] = "DIV";
+        keywordMap["%"] = "MOD";
+        keywordMap["&&"] = "AND";
+        keywordMap["||"] = "OR";
+        keywordMap["!"] = "NOT";
+        keywordMap[".."] = "CONCAT";
     }
 
     void updateNextToken() {
-        if (source.empty()) { throw invalid_argument("Empty Input"); }
+        if (source.empty()) {
+            throw invalid_argument("Empty Input");
+        }
         while (position < source.size()) {
             char current_char = source[position];
-            if (current_char == ' ' || current_char == '\t' || current_char == '\n' || current_char == '\r') { 
-                position++; 
+            if (isspace(current_char)) {
+                position++;
             } else if (isdigit(current_char)) {
                 next.type = "NUMBER_LITERAL";
                 next.value = current_char - '0';
@@ -79,11 +90,11 @@ public:
                     identifier += source[position];
                     position++;
                 }
-                if (keywordMap.find(identifier) != keywordMap.end()) { 
-                    next.type = keywordMap[identifier]; 
-                } else { 
-                    next.type = "IDENTIFIER"; 
-                    next.valueString = identifier; 
+                if (keywordMap.find(identifier) != keywordMap.end()) {
+                    next.type = keywordMap[identifier];
+                } else {
+                    next.type = "IDENTIFIER";
+                    next.valueString = identifier;
                 }
                 return;
             } else if (current_char == '"') {
@@ -99,8 +110,8 @@ public:
                         position++;
                     }
                 }
-                if (position >= source.size() || source[position] != '"') { 
-                    throw invalid_argument("Unterminated string"); 
+                if (position >= source.size() || source[position] != '"') {
+                    throw invalid_argument("Unterminated string");
                 }
                 position++;
                 return;
@@ -108,23 +119,24 @@ public:
                 string identifier = "";
                 identifier += current_char;
                 position++;
-                if (current_char == '=' && position < source.size() && source[position] == '=') {
+                if ((current_char == '=' || current_char == '!' || current_char == '<' || current_char == '>') &&
+                    position < source.size() && source[position] == '=') {
                     identifier += source[position];
                     position++;
-                } else if (current_char == '!' && position < source.size() && source[position] == '=') {
+                } else if (current_char == '&' && position < source.size() && source[position] == '&') {
                     identifier += source[position];
                     position++;
-                } else if (current_char == '<' && position < source.size() && source[position] == '=') {
+                } else if (current_char == '|' && position < source.size() && source[position] == '|') {
                     identifier += source[position];
                     position++;
-                } else if (current_char == '>' && position < source.size() && source[position] == '=') {
+                } else if (current_char == '.' && position < source.size() && source[position] == '.') {
                     identifier += source[position];
                     position++;
                 }
-                if (keywordMap.find(identifier) != keywordMap.end()) { 
-                    next.type = keywordMap[identifier]; 
-                } else { 
-                    throw invalid_argument("Invalid operator: '" + identifier + "'"); 
+                if (keywordMap.find(identifier) != keywordMap.end()) {
+                    next.type = keywordMap[identifier];
+                } else {
+                    throw invalid_argument("Invalid operator: '" + identifier + "'");
                 }
                 return;
             }
