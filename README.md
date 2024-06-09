@@ -100,8 +100,8 @@ setup {
 
 // Main block will be executed in an infinite loop after setup
 main {
-    // Create sessions for each chat
-    const sessions = createSessions();
+    // Create sessions for each unattended chat
+    sessions = createSessions();
 
     // Start context-specific behaviors for each session in parallel
     loop {
