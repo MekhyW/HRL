@@ -27,6 +27,10 @@
 
 "=="                  { return EQ; }
 "!="                  { return NEQ; }
+"<"                   { return LT; }
+">"                   { return GT; }
+"<="                  { return LEQ; }
+">="                  { return GEQ; }
 ":"                   { return COLON; }
 ","                   { return COMMA; }
 ";"                   { return SEMICOLON; }
