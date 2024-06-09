@@ -1,13 +1,12 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "hrl.tab.h"
-
+#include <string.h>
 void yyerror(const char *s);
 int yylex(void);
 %}
 
-%token SETUP MAIN ENUM STRUCT BEHAVIOR LOOP IF ELSE SWITCH CASE CONST FUNCTION THREADLOOP BREAK CONTINUE
+%token SETUP MAIN ENUM STRUCT BEHAVIOR LOOP IF ELSE SWITCH CASE CONST FUNCTION THREADLOOP BREAK CONTINUE RETURN
 %token IDENTIFIER STRING_LITERAL NUMBER_LITERAL TYPE
 %token EQ NEQ ASSIGN COLON COMMA SEMICOLON LBRACE RBRACE LPAREN RPAREN DOT LBRACKET RBRACKET
 
@@ -20,11 +19,20 @@ program:
 ;
 
 setup:
-    SETUP LBRACE statements RBRACE
+    SETUP block
 ;
 
 main:
-    MAIN LBRACE statements RBRACE
+    MAIN block
+;
+
+block:
+    LBRACE statements_opt RBRACE
+;
+
+statements_opt:
+    /* empty */
+    | statements
 ;
 
 statements:
@@ -46,6 +54,7 @@ statement:
     | threadloop_statement SEMICOLON
     | break_statement SEMICOLON
     | continue_statement SEMICOLON
+    | return_statement SEMICOLON
 ;
 
 variable_declaration:
@@ -76,25 +85,25 @@ struct_declaration:
 
 variable_declarations:
     variable_declaration
-    | variable_declarations COMMA variable_declaration
+    | variable_declarations variable_declaration
 ;
 
 behavior_declaration:
-    BEHAVIOR IDENTIFIER LPAREN parameters RPAREN block
+    BEHAVIOR IDENTIFIER LPAREN parameters_opt RPAREN block
+;
+
+parameters_opt:
+    /* empty */
+    | parameters
 ;
 
 parameters:
-    /* empty */
-    | parameter
+    parameter
     | parameters COMMA parameter
 ;
 
 parameter:
     IDENTIFIER COLON TYPE
-;
-
-block:
-    LBRACE statements RBRACE
 ;
 
 loop_statement:
@@ -138,7 +147,7 @@ arguments:
 ;
 
 function_declaration:
-    FUNCTION IDENTIFIER LPAREN parameters RPAREN COLON TYPE block
+    FUNCTION IDENTIFIER LPAREN parameters_opt RPAREN COLON TYPE block
 ;
 
 const_declaration:
@@ -155,6 +164,15 @@ break_statement:
 
 continue_statement:
     CONTINUE
+;
+
+return_statement:
+    RETURN expression_opt
+;
+
+expression_opt:
+    /* empty */
+    | expression
 ;
 
 expression:
