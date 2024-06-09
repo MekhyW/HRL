@@ -56,7 +56,7 @@ public:
             throw invalid_argument("Expected ';' after constant declaration");
         }
         current_token = tokenizer.selectNext();
-        return make_shared<VarDeclareNode>(var_name, value_node, true);
+        return make_shared<VarDeclareNode>(var_name, value_node);
     }
 
     shared_ptr<Node> parse_if_statement() {
