@@ -54,45 +54,56 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    SETUP = 258,                   /* SETUP  */
-    MAIN = 259,                    /* MAIN  */
-    ENUM = 260,                    /* ENUM  */
-    STRUCT = 261,                  /* STRUCT  */
-    BEHAVIOR = 262,                /* BEHAVIOR  */
-    LOOP = 263,                    /* LOOP  */
-    IF = 264,                      /* IF  */
-    ELSE = 265,                    /* ELSE  */
-    SWITCH = 266,                  /* SWITCH  */
-    CASE = 267,                    /* CASE  */
-    CONST = 268,                   /* CONST  */
-    FUNCTION = 269,                /* FUNCTION  */
-    THREADLOOP = 270,              /* THREADLOOP  */
-    BREAK = 271,                   /* BREAK  */
-    CONTINUE = 272,                /* CONTINUE  */
-    IDENTIFIER = 273,              /* IDENTIFIER  */
-    STRING_LITERAL = 274,          /* STRING_LITERAL  */
-    NUMBER_LITERAL = 275,          /* NUMBER_LITERAL  */
-    TYPE = 276,                    /* TYPE  */
-    EQ = 277,                      /* EQ  */
-    NEQ = 278,                     /* NEQ  */
-    ASSIGN = 279,                  /* ASSIGN  */
-    COLON = 280,                   /* COLON  */
-    COMMA = 281,                   /* COMMA  */
-    SEMICOLON = 282,               /* SEMICOLON  */
-    LBRACE = 283,                  /* LBRACE  */
-    RBRACE = 284,                  /* RBRACE  */
-    LPAREN = 285,                  /* LPAREN  */
-    RPAREN = 286,                  /* RPAREN  */
-    DOT = 287,                     /* DOT  */
-    LBRACKET = 288,                /* LBRACKET  */
-    RBRACKET = 289                 /* RBRACKET  */
+    IDENTIFIER = 258,              /* IDENTIFIER  */
+    STRING_LITERAL = 259,          /* STRING_LITERAL  */
+    NUMBER_LITERAL = 260,          /* NUMBER_LITERAL  */
+    SETUP = 261,                   /* SETUP  */
+    MAIN = 262,                    /* MAIN  */
+    ENUM = 263,                    /* ENUM  */
+    STRUCT = 264,                  /* STRUCT  */
+    BEHAVIOR = 265,                /* BEHAVIOR  */
+    LOOP = 266,                    /* LOOP  */
+    IF = 267,                      /* IF  */
+    ELSE = 268,                    /* ELSE  */
+    SWITCH = 269,                  /* SWITCH  */
+    CASE = 270,                    /* CASE  */
+    CONST = 271,                   /* CONST  */
+    FUNCTION = 272,                /* FUNCTION  */
+    THREADLOOP = 273,              /* THREADLOOP  */
+    BREAK = 274,                   /* BREAK  */
+    CONTINUE = 275,                /* CONTINUE  */
+    RETURN = 276,                  /* RETURN  */
+    TYPE = 277,                    /* TYPE  */
+    EQ = 278,                      /* EQ  */
+    NEQ = 279,                     /* NEQ  */
+    ASSIGN = 280,                  /* ASSIGN  */
+    COLON = 281,                   /* COLON  */
+    COMMA = 282,                   /* COMMA  */
+    SEMICOLON = 283,               /* SEMICOLON  */
+    LBRACE = 284,                  /* LBRACE  */
+    RBRACE = 285,                  /* RBRACE  */
+    LPAREN = 286,                  /* LPAREN  */
+    RPAREN = 287,                  /* RPAREN  */
+    DOT = 288,                     /* DOT  */
+    LBRACKET = 289,                /* LBRACKET  */
+    RBRACKET = 290                 /* RBRACKET  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 16 "hrl.y"
+
+    char *str;
+    int num;
+
+#line 104 "hrl.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
