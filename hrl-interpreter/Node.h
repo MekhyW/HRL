@@ -169,31 +169,6 @@ private:
     string identifier;
 };
 
-class ReadNode : public Node {
-public:
-    ReadNode() {type = "ReadNode";}
-    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        int value;
-        cin >> value;
-        return EvalResult(value);
-    }
-};
-
-class PrintNode : public Node {
-public:
-    PrintNode(NodePtr expression) : expression(move(expression)) {type = "PrintNode";}
-    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        EvalResult result = expression->Evaluate(symbol_table, func_table);
-        if (holds_alternative<int>(result)) { cout << get<int>(result) << endl; }
-        else if (holds_alternative<string>(result)) { cout << get<string>(result) << endl; }
-        else if (holds_alternative<double>(result)) { cout << get<double>(result) << endl; }
-        else if (holds_alternative<bool>(result)) { cout << get<bool>(result) << endl; }
-        return result;
-    }
-private:
-    NodePtr expression;
-};
-
 class VarDeclareNode : public Node {
 public:
     VarDeclareNode(string identifier, NodePtr expression = make_shared<IntValNode>(0))
