@@ -22,8 +22,8 @@
 "return"                  { return RETURN; }
 "=="                      { return EQ; }
 "!="                      { return NEQ; }
-"<="                      { return LE; }
-">="                      { return GE; }
+"<="                      { return LEQ; }
+">="                      { return GEQ; }
 "<"                       { return LT; }
 ">"                       { return GT; }
 ":"                       { return COLON; }
