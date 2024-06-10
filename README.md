@@ -161,7 +161,7 @@ function generateDescription(objects: List<Object>): String {
 }
 
 function waitForImageCaptureTrigger(sessionId: String): String {
-    return python.runScript("image_capture.py", sessionId);
+    return callprogram("wait_for_trigger.py", sessionId);
 }
 ```
 
