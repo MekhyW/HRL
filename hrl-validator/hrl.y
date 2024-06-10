@@ -77,6 +77,16 @@ while_statement:
 
 variable_declaration:
     IDENTIFIER COLON TYPE ASSIGN expression
+    | IDENTIFIER COLON TYPE array_initializer
+;
+
+array_initializer:
+    LBRACKET expression_list RBRACKET
+;
+
+expression_list:
+    expression
+    | expression_list COMMA expression
 ;
 
 enum_declaration:
