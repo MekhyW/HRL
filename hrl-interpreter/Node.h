@@ -336,6 +336,18 @@ public:
     }
 };
 
+class ProgramNode : public Node {
+public:
+    ProgramNode(NodePtr setup_block, NodePtr main_block) : setup_block(move(setup_block)), main_block(move(main_block)) {type = "ProgramNode";}
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        setup_block->Evaluate(symbol_table, func_table);
+        while (true) { main_block->Evaluate(symbol_table, func_table); }
+        return EvalResult(0);
+    }
+private:
+    NodePtr setup_block, main_block;
+};
+
 class EnumNode : public Node {
 public:
     EnumNode(string name, vector<string> values) : name(name), values(values) { type = "EnumNode"; }

@@ -12,9 +12,19 @@ private:
 public:
     static Tokenizer tokenizer;
 
+    shared_ptr<Node> parse_program() {
+        if (current_token.type != "SETUP") { throw invalid_argument("Program must start with 'setup'"); }
+        current_token = tokenizer.selectNext();
+        shared_ptr<Node> setup_block = parse_block();
+        if (current_token.type != "MAIN") { throw invalid_argument("Missing main block after setup"); }
+        current_token = tokenizer.selectNext();
+        shared_ptr<Node> main_block = parse_block();
+        return make_shared<ProgramNode>(setup_block, main_block);
+    }
+
     shared_ptr<Node> parse_block() {
         shared_ptr<Node> block_node = make_shared<BlockNode>();
-        while (current_token.type != "EOF" && current_token.type != "END" && current_token.type != "ELSE") {
+        while (current_token.type != "EOF" && current_token.type != "RBRACE" && current_token.type != "ELSE") {
             block_node->add_statement(parse_statement());
         }
         return block_node;
@@ -23,7 +33,7 @@ public:
     shared_ptr<Node> parse_statement() {
         if (current_token.type == "EOF") {
             return make_shared<NoOpNode>();
-        } else if (current_token.type == "NEWLINE" || current_token.type == "END" || current_token.type == "ELSE") {
+        } else if (current_token.type == "NEWLINE" || current_token.type == "RBRACE" || current_token.type == "ELSE") {
             current_token = tokenizer.selectNext();
             return make_shared<NoOpNode>();
         } else if (current_token.type == "CONST") {
@@ -438,7 +448,7 @@ public:
 
     shared_ptr<Node> run(const string& code) {
         current_token = tokenizer.selectNext();
-        shared_ptr<Node> root = parse_block();
+        shared_ptr<Node> root = parse_program();
         if (current_token.type != "EOF") { throw invalid_argument("Expected EOF"); }
         return root;
     }
