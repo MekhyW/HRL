@@ -50,9 +50,36 @@ public:
             return parse_enum_declaration();
         } else if (current_token.type == "STRUCT") {
             return parse_struct_declaration();
+        } else if (current_token.type == "THREADLOOP") {
+            return parse_threadloop_statement();
         } else {
             return parse_vardec_assignment_funccall();
         }
+    }
+
+    shared_ptr<Node> parse_threadloop_statement() {
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "IDENTIFIER") { throw invalid_argument("Expected identifier after 'threadloop'"); }
+        string threadloop_name = current_token.valueString;
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "LPAREN") { throw invalid_argument("Expected '(' after threadloop name"); }
+        current_token = tokenizer.selectNext();
+        vector<string> args;
+        while (current_token.type != "RPAREN") {
+            if (current_token.type != "IDENTIFIER") { throw invalid_argument("Expected identifier in threadloop arguments"); }
+            args.push_back(current_token.valueString);
+            current_token = tokenizer.selectNext();
+            if (current_token.type == "RPAREN") { break; }
+            if (current_token.type != "COMMA") { throw invalid_argument("Expected ',' after threadloop argument"); }
+            current_token = tokenizer.selectNext();
+        }
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "LBRACE") { throw invalid_argument("Expected '{' after threadloop arguments"); }
+        current_token = tokenizer.selectNext();
+        shared_ptr<Node> block_node = parse_block();
+        if (current_token.type != "RBRACE") { throw invalid_argument("Expected '}' after threadloop block"); }
+        current_token = tokenizer.selectNext();
+        return make_shared<ThreadLoopNode>(threadloop_name, args, block_node);
     }
 
     shared_ptr<Node> parse_enum_declaration() {

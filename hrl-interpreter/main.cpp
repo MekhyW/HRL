@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]) {
     parser.tokenizer = Tokenizer(filtered_code);
 
     // Parse
+    omp_set_num_threads(omp_get_max_threads());
     shared_ptr<Node> root = parser.run(filtered_code);
 
     // Interpret

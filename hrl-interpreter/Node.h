@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -431,4 +432,20 @@ public:
 private:
     string identifier;
     NodePtr index;
+};
+
+class ThreadLoopNode : public Node {
+public:
+    ThreadLoopNode(const string& name, vector<string> args, NodePtr block) : name(name), args(move(args)), block(move(block)) { type = "ThreadLoopNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        #pragma omp parallel
+        {
+            while (true) { block->Evaluate(symbol_table, func_table); }
+        }
+        return EvalResult("NULL");
+    }
+private:
+    string name;
+    vector<string> args;
+    NodePtr block;
 };

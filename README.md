@@ -218,7 +218,7 @@ make
 ./hrl_validator < <path-to-your-hrl-file>
 ```
 
-### Interpretation
+### Interpretation (prototype; behaviors and pub/sub system not implemented yet)
 
 ```bash
 cd hrl-interpreter
