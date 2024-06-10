@@ -7,10 +7,11 @@ using namespace std;
 
 class Parser {
 private:
-    static Tokenizer tokenizer;
     static Token current_token;
 
 public:
+    static Tokenizer tokenizer;
+
     shared_ptr<Node> parse_block() {
         shared_ptr<Node> block_node = make_shared<BlockNode>();
         while (current_token.type != "EOF" && current_token.type != "END" && current_token.type != "ELSE") { 
@@ -304,7 +305,6 @@ public:
     }
 
     shared_ptr<Node> run(const string& code) {
-        tokenizer = Tokenizer(code);
         current_token = tokenizer.selectNext();
         shared_ptr<Node> root = parse_block();
         if (current_token.type != "EOF") { throw invalid_argument("Expected EOF"); }

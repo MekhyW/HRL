@@ -2,15 +2,26 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 #include <variant>
 #include "SymbolTable.h"
 using namespace std;
 
+template <typename T>
+string join(const vector<T>& vec, const string& delimiter) {
+    stringstream ss;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        if (i != 0) ss << delimiter;
+        ss << vec[i];
+    }
+    return ss.str();
+}
+
 class Node;
 using NodePtr = shared_ptr<Node>;
-using EvalResult = std::variant<int, string, double, bool>;
+using EvalResult = variant<int, string, double, bool>;
 
 class Node {
 public:
@@ -194,6 +205,28 @@ private:
     NodePtr expression;
 };
 
+class CallProgramNode : public Node {
+public:
+    CallProgramNode(string program_name, const vector<string>& args) : program_name(program_name), args(args) {type = "CallProgramNode";}
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        if (program_name.find(".py") != string::npos) {
+            string command = "python " + program_name + " " + join(args, " ");
+            return EvalResult(system(command.c_str()));
+        }
+        else if (program_name.find(".lua") != string::npos) {
+            string command = "lua " + program_name + " " + join(args, " ");
+            return EvalResult(system(command.c_str()));
+        }
+        else {
+            string command = "./" + program_name + " " + join(args, " ");
+            return EvalResult(system(command.c_str()));
+        }
+    }
+private:
+    string program_name;
+    vector<string> args;
+};
+
 class VarDeclareNode : public Node {
 public:
     VarDeclareNode(string identifier, NodePtr expression = make_shared<IntValNode>(0))
@@ -264,6 +297,9 @@ class FuncCallNode : public Node {
 public:
     FuncCallNode(const string& identifier, const vector<NodePtr>& args) : identifier(identifier), args(args) {type = "FuncCallNode";}
     virtual EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        if (identifier == "print") { return make_shared<PrintNode>(args[0])->Evaluate(symbol_table, func_table); }
+        if (identifier == "read") { return make_shared<ReadNode>()->Evaluate(symbol_table, func_table); }
+        if (identifier == "callprogram") { return make_shared<CallProgramNode>(args[0]->Evaluate(symbol_table, func_table), vector<string>(args.begin() + 1, args.end()))->Evaluate(symbol_table, func_table); }
         FuncInfo func_info = func_table.getFunction(identifier);
         if (func_info.args.size() != args.size()) { throw invalid_argument("Function " + identifier + " expects " + to_string(func_info.args.size()) + " arguments, but " + to_string(args.size()) + " were given"); }
         SymbolTable new_symbol_table = SymbolTable();

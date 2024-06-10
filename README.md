@@ -46,55 +46,49 @@ setup {
 
     -- Behavior for the general context
     behavior generalContext(session: Session) {
-        loop {
-            -- Listen for user input
-            const userInput = waitForUserInput(session.id);
+        -- Listen for user input
+        userInput = read();
 
-            -- Publish user input to topic
-            publishToTopic(Topic.UserInput, userInput);
+        -- Publish user input to topic
+        publishToTopic(Topic.UserInput, userInput);
 
-            -- Process user input based on context
-            if (userInput == "start task") {
-                switchContext(session, Context.Task);
-            } else if (userInput == "error") {
-                switchContext(session, Context.ErrorHandling);
-            } else {
-                respond(session.id, "Sorry, I didn't understand.");
-            }
+        -- Process user input based on context
+        if (userInput == "start task") {
+            switchContext(session, Context.Task);
+        } else if (userInput == "error") {
+            switchContext(session, Context.ErrorHandling);
+        } else {
+            respond(session.id, "Sorry, I didn't understand.");
         }
     }
 
     -- Behavior for the task context
     behavior taskContext(session: Session) {
-        loop {
-            -- Perform task-specific operations
-            performTask(session.id);
+        -- Perform task-specific operations
+        performTask(session.id);
 
-            -- Publish task completion to topic
-            publishToTopic(Topic.TaskCompleted, session.id);
+        -- Publish task completion to topic
+        publishToTopic(Topic.TaskCompleted, session.id);
 
-            -- Listen for user input to switch context
-            const userInput = waitForUserInput(session.id);
-            if (userInput == "exit") {
-                switchContext(session, Context.General);
-            }
+        -- Listen for user input to switch context
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "exit") {
+            switchContext(session, Context.General);
         }
     }
 
     -- Behavior for the error handling context
     behavior errorHandlingContext(session: Session) {
-        loop {
-            -- Handle errors
-            handleError(session.id);
+        -- Handle errors
+        handleError(session.id);
 
-            -- Publish error to topic
-            publishToTopic(Topic.ErrorOccurred, session.id);
+        -- Publish error to topic
+        publishToTopic(Topic.ErrorOccurred, session.id);
 
-            -- Listen for user input to switch context
-            const userInput = waitForUserInput(session.id);
-            if (userInput == "retry") {
-                switchContext(session, Context.General);
-            }
+        -- Listen for user input to switch context
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "retry") {
+            switchContext(session, Context.General);
         }
     }
 
@@ -121,15 +115,15 @@ main {
 
 The following subscript demonstrates how the language can be used to integrate different services and other scripts. 
 
-In this example, the language is used to create a simple chatbot that can detect objects in images and generate descriptions for them using AI models and text-to-speech services, by calling OpenCV, MetaAISAM, Google Cloud Text-to-Speech, and a custom Python script for image capture (whose terminal output is captured and returned as a string).
+In this example, the language is used to create a simple chatbot that can detect objects in images and generate descriptions for them using AI models and text-to-speech services, by calling other scripts with the necessary OpenCV, MetaAISAM and Google Cloud Text-to-Speech libraries/plugins (whose terminal output is captured and returned as a string).
 
-No import statements are needed, as the language is designed to be able to call external scripts and services directly, locating the dependencies automatically.
+This makes HRL a good tool for blueprinting and orchestrating complex AI systems, as it can easily call and integrate existing models and libraries for common agent tasks (e.g., natural language processing, vision models, audio models, path planning, etc.), so you can focus on the higher-level logic.
 
 ```hrl
 behavior objectDetectionContext(session: Session) {
     loop {
-        image = opencv.captureImage(session.id);
-        objects = metaAISAM.segment(image);
+        image = callprogram("./capture_image");
+        objects = callprogram("detect_objects_meta_sam.py", image);
         publishToTopic(Topic.ObjectDetected, objects);
         switchContext(session, Context.Description);
     }
@@ -139,7 +133,7 @@ behavior descriptionContext(session: Session) {
     loop {
         objects = waitForMessage(Topic.ObjectDetected);
         description = generateDescription(objects);
-        googleCloudTTS.speak(session.id, description);
+        callprogram("google_cloud_tts.lua", description, "EN");
         publishToTopic(Topic.DescriptionCompleted, session.id);
         switchContext(session, Context.Idle);
     }
@@ -147,7 +141,7 @@ behavior descriptionContext(session: Session) {
 
 behavior idleContext(session: Session) {
     loop {
-        trigger = waitForImageCaptureTrigger(session.id);
+        trigger = read();
         if (trigger == "capture") {
             switchContext(session, Context.ObjectDetection);
         }
