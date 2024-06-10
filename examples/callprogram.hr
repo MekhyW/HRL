@@ -1,0 +1,49 @@
+setup {
+    struct Session {
+        id: String,
+        context: Context,
+    }
+
+    behavior objectDetectionContext(session: Session) {
+        image = callprogram("./capture_image");
+        objects = callprogram("detect_objects_meta_sam.py", image);
+        publishToTopic(Topic.ObjectDetected, objects);
+        switchContext(session, Context.Description);
+    }
+
+    behavior descriptionContext(session: Session) {
+        objects = waitForMessage(Topic.ObjectDetected);
+        description = generateDescription(objects);
+        callprogram("google_cloud_tts.lua", description, "EN");
+        publishToTopic(Topic.DescriptionCompleted, session.id);
+        switchContext(session, Context.Idle);
+    }
+
+    behavior idleContext(session: Session) {
+        trigger = read();
+        if (trigger == "capture") {
+            switchContext(session, Context.ObjectDetection);
+        }
+    }
+
+    function generateDescription(objects: List<Object>): String {
+        description = "Detected objects: ";
+        while (!objects.isEmpty()) {
+            object = objects.pop();
+            description += object.name + ", ";
+        }
+        return description.trim();
+    }
+
+    function waitForImageCaptureTrigger(sessionId: String): String {
+        return callprogram("wait_for_trigger.py", sessionId);
+    }
+}
+
+main {
+    sessions = createSessions();
+    while (!sessions.isEmpty()) {
+        session = sessions.pop();
+        switchContext(session, Context.Idle);
+    }
+}
