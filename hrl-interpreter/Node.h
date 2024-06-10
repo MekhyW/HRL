@@ -21,7 +21,7 @@ string join(const vector<T>& vec, const string& delimiter) {
 
 class Node;
 using NodePtr = shared_ptr<Node>;
-using EvalResult = variant<int, string, double, bool>;
+using EvalResult = variant<int, string, double, bool, vector<int>, vector<string>, vector<double>, vector<bool>>;
 
 class Node {
 public:
@@ -389,4 +389,34 @@ public:
 private:
     string struct_instance_name;
     string field_name;
+};
+
+class ArrayNode : public Node {
+public:
+    ArrayNode(const vector<NodePtr>& nodes) : nodes(nodes) { type = "ArrayNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        for (const auto& node : nodes) {
+            node->Evaluate(symbol_table, func_table);
+        }
+        return EvalResult("NULL");
+    }
+private:
+    vector<NodePtr> nodes;
+};
+
+class ArrayAccessNode : public Node {
+public:
+    ArrayAccessNode(string identifier, NodePtr index) : identifier(identifier), index(move(index)) { type = "ArrayAccessNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        EvalResult array = symbol_table.getVariable(identifier);
+        EvalResult index_value = index->Evaluate(symbol_table, func_table);
+        if (holds_alternative<vector<int>>(array)) { return get<vector<int>>(array)[get<int>(index_value)]; }
+        if (holds_alternative<vector<double>>(array)) { return get<vector<double>>(array)[get<int>(index_value)]; }
+        if (holds_alternative<vector<bool>>(array)) { return get<vector<bool>>(array)[get<int>(index_value)]; }
+        if (holds_alternative<vector<string>>(array)) { return get<vector<string>>(array)[get<int>(index_value)]; }
+        throw runtime_error("Unsupported array type.");
+    }
+private:
+    string identifier;
+    NodePtr index;
 };

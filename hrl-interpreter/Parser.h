@@ -14,8 +14,8 @@ public:
 
     shared_ptr<Node> parse_block() {
         shared_ptr<Node> block_node = make_shared<BlockNode>();
-        while (current_token.type != "EOF" && current_token.type != "END" && current_token.type != "ELSE") { 
-            block_node->add_statement(parse_statement()); 
+        while (current_token.type != "EOF" && current_token.type != "END" && current_token.type != "ELSE") {
+            block_node->add_statement(parse_statement());
         }
         return block_node;
     }
@@ -24,8 +24,8 @@ public:
         if (current_token.type == "EOF") {
             return make_shared<NoOpNode>();
         } else if (current_token.type == "NEWLINE" || current_token.type == "END" || current_token.type == "ELSE") {
-            current_token = tokenizer.selectNext(); 
-            return make_shared<NoOpNode>(); 
+            current_token = tokenizer.selectNext();
+            return make_shared<NoOpNode>();
         } else if (current_token.type == "CONST") {
             return parse_const_declaration();
         } else if (current_token.type == "IF") {
@@ -41,7 +41,7 @@ public:
         } else if (current_token.type == "STRUCT") {
             return parse_struct_declaration();
         } else {
-            return parse_assignment_or_function_call();
+            return parse_vardec_assignment_funccall();
         }
     }
 
@@ -106,7 +106,6 @@ public:
         return make_shared<StructNode>(struct_name, fields);
     }
 
-
     shared_ptr<Node> parse_const_declaration() {
         current_token = tokenizer.selectNext();
         if (current_token.type != "IDENTIFIER") {
@@ -118,12 +117,36 @@ public:
             throw invalid_argument("Expected '=' after identifier in constant declaration");
         }
         current_token = tokenizer.selectNext();
-        shared_ptr<Node> value_node = parse_boolexpression();
+        shared_ptr<Node> value_node = parse_expression_or_list();
         if (current_token.type != "SEMICOLON") {
             throw invalid_argument("Expected ';' after constant declaration");
         }
         current_token = tokenizer.selectNext();
         return make_shared<VarDeclareNode>(var_name, value_node);
+    }
+
+    shared_ptr<Node> parse_expression_or_list() {
+        if (current_token.type == "LBRACKET") {
+            return parse_list_initializer();
+        } else {
+            return parse_boolexpression();
+        }
+    }
+
+    shared_ptr<Node> parse_list_initializer() {
+        current_token = tokenizer.selectNext();
+        vector<shared_ptr<Node>> elements;
+        while (current_token.type != "RBRACKET") {
+            shared_ptr<Node> element = parse_expression();
+            elements.push_back(element);
+            if (current_token.type == "COMMA") {
+                current_token = tokenizer.selectNext();
+            } else if (current_token.type != "RBRACKET") {
+                throw invalid_argument("Expected ']' or ',' in list initializer");
+            }
+        }
+        current_token = tokenizer.selectNext();
+        return make_shared<ArrayNode>(elements);
     }
 
     shared_ptr<Node> parse_if_statement() {
@@ -218,7 +241,7 @@ public:
         return make_shared<FuncDeclareNode>(func_name, args, block_node);
     }
 
-    shared_ptr<Node> parse_assignment_or_function_call() {
+    shared_ptr<Node> parse_vardec_assignment_funccall() {
         if (current_token.type != "IDENTIFIER") {
             throw invalid_argument("Expected identifier");
         }
@@ -251,7 +274,24 @@ public:
             }
             current_token = tokenizer.selectNext();
             return make_shared<FuncCallNode>(identifier, args);
-        } else {
+        } else if (current_token.type == "COLON") {
+            current_token = tokenizer.selectNext();
+            if (current_token.type != "IDENTIFIER") {
+                throw invalid_argument("Expected type identifier after ':' in variable declaration");
+            }
+            current_token = tokenizer.selectNext();
+            shared_ptr<Node> value_node;
+            if (current_token.type == "ASSIGN") {
+                current_token = tokenizer.selectNext();
+                value_node = parse_expression_or_list();
+            }
+            if (current_token.type != "SEMICOLON") {
+                throw invalid_argument("Expected ';' after variable declaration");
+            }
+            current_token = tokenizer.selectNext();
+            return make_shared<VarDeclareNode>(identifier, value_node);
+        }
+        else {
             throw invalid_argument("Unexpected token after identifier");
         }
     }
@@ -381,6 +421,13 @@ public:
                 string enum_value = current_token.valueString;
                 current_token = tokenizer.selectNext();
                 return make_shared<EnumValNode>(identifier, enum_value);
+            }
+            else if (current_token.type == "LBRACKET") {
+                current_token = tokenizer.selectNext();
+                shared_ptr<Node> index = parse_boolexpression();
+                if (current_token.type != "RBRACKET") { throw invalid_argument("Expected ']' after array index"); }
+                current_token = tokenizer.selectNext();
+                return make_shared<ArrayAccessNode>(identifier, index);
             }
             else {
                 return make_shared<VarNode>(identifier);

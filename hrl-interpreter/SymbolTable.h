@@ -7,7 +7,7 @@ using namespace std;
 
 class Node;
 using NodePtr = shared_ptr<Node>;
-using EvalResult = std::variant<int, string, double, bool>;
+using EvalResult = variant<int, string, double, bool, vector<int>, vector<string>, vector<double>, vector<bool>>;
 
 struct FuncInfo {
     vector<string> args;
@@ -23,6 +23,8 @@ private:
 
 public:
     void setVariable(const string& name, EvalResult value, bool declare = false) {
+        if (!declare && !variables.count(name)) { throw invalid_argument("Undefined variable: " + name); }
+        if (declare && variables.find(name) != variables.end()) { throw invalid_argument("Variable already declared: " + name); }
         variables[name] = value;
     }
 
