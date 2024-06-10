@@ -12,8 +12,6 @@
 "while"                   { return WHILE; }
 "if"                      { return IF; }
 "else"                    { return ELSE; }
-"switch"                  { return SWITCH; }
-"case"                    { return CASE; }
 "const"                   { return CONST; }
 "function"                { return FUNCTION; }
 "threadloop"              { return THREADLOOP; }
