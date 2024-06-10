@@ -1,6 +1,6 @@
 # HRL (Human-Robot Language)
 
-HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development. Programming in HRL can be viewed as being conceptually similar to creating a finite state machine (FSM), especially when dealing with context management and state transitions.
+HRL is a language prototype specifically designed to help developers and product owners program AI-powered systems for a wide range of applications, including chatbots, virtual assistants, and physical robots. The language is designed to be easy to learn and use, with a clean and concise syntax that allows for rapid integration and development.
 
 ## Key Features
 
@@ -9,8 +9,6 @@ HRL is a language prototype specifically designed to help developers and product
 - **Pub/Sub Topics**: The language supports a publish/subscribe model for communication between different components of a system, where modules or components can publish messages (events) to specific topics and subscribe to receive messages from topics of interest.
 
 - **Context Switching Mechanism**: Components can easily adapt to different contexts or environments by switching between different sets of rules or behaviors based on the current context or state of the system.
-
-- **Session Management**: Built-in support is provided for managing active user sessions and maintaining state across multiple interactions. Topics can be used to store and retrieve the associated data for each session, and components can be session-aware. This includes error handling, since errors can also be isolated to not affect the entire system.
 
 - **Setup-Loop by Default**: Programs by default run in an infinite main loop after setup, allowing for continuous execution and monitoring of the system.
 
@@ -121,41 +119,32 @@ This makes HRL a good tool for blueprinting and orchestrating complex AI systems
 
 ```hrl
 behavior objectDetectionContext(session: Session) {
-    loop {
-        image = callprogram("./capture_image");
-        objects = callprogram("detect_objects_meta_sam.py", image);
-        publishToTopic(Topic.ObjectDetected, objects);
-        switchContext(session, Context.Description);
-    }
+    image = callprogram("./capture_image");
+    objects = callprogram("detect_objects_meta_sam.py", image);
+    publishToTopic(Topic.ObjectDetected, objects);
+    switchContext(session, Context.Description);
 }
 
 behavior descriptionContext(session: Session) {
-    loop {
-        objects = waitForMessage(Topic.ObjectDetected);
-        description = generateDescription(objects);
-        callprogram("google_cloud_tts.lua", description, "EN");
-        publishToTopic(Topic.DescriptionCompleted, session.id);
-        switchContext(session, Context.Idle);
-    }
+    objects = waitForMessage(Topic.ObjectDetected);
+    description = generateDescription(objects);
+    callprogram("google_cloud_tts.lua", description, "EN");
+    publishToTopic(Topic.DescriptionCompleted, session.id);
+    switchContext(session, Context.Idle);
 }
 
 behavior idleContext(session: Session) {
-    loop {
-        trigger = read();
-        if (trigger == "capture") {
-            switchContext(session, Context.ObjectDetection);
-        }
+    trigger = read();
+    if (trigger == "capture") {
+        switchContext(session, Context.ObjectDetection);
     }
 }
 
 function generateDescription(objects: List<Object>): String {
     description = "Detected objects: ";
-    loop {
+    while (!objects.isEmpty()) {
         object = objects.pop();
         description += object.name + ", ";
-        if (objects.isEmpty()) {
-            break;
-        }
     }
     return description.trim();
 }
