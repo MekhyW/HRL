@@ -188,11 +188,12 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 <li>ARITHMETIC_EXPRESSION = TERM, { ("+" | "-"), TERM };
 <li>TERM = FACTOR, { ("*" | "/" | "%"), FACTOR };
 <li>FACTOR = ("+" | "-" | "!"), FACTOR | SIMPLE_EXPRESSION;
-<li>SIMPLE_EXPRESSION = IDENTIFIER | STRING_LITERAL | NUMBER_LITERAL | "(", EXPRESSION, ")" | FUNCTION_CALL_STATEMENT | ARRAY_ACCESS | MEMBER_ACCESS;
+<li>SIMPLE_EXPRESSION = IDENTIFIER | STRING_LITERAL | NUMBER_LITERAL | "(", EXPRESSION, ")" | FUNCTION_CALL_STATEMENT | ARRAY_ACCESS | ENUM_ACCESS | MEMBER_ACCESS;
 <li>IDENTIFIER = LETTER, { LETTER | DIGIT | "_" };
 <li>STRING_LITERAL = '"', { LETTER | DIGIT | SPECIAL_CHARACTER }, '"';
 <li>NUMBER_LITERAL = DIGIT, { DIGIT };
 <li>ARRAY_ACCESS = IDENTIFIER, "[", EXPRESSION, "]";
+<li>ENUM_ACCESS = IDENTIFIER, ":", IDENTIFIER;
 <li>MEMBER_ACCESS = IDENTIFIER, ".", IDENTIFIER;
 <li>TYPE = IDENTIFIER;
 <li>LETTER = ("a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z");

@@ -245,11 +245,16 @@ simple_expression:
     | LPAREN expression RPAREN
     | function_call_statement
     | array_access
+    | enum_access
     | member_access
 ;
 
 array_access:
     IDENTIFIER LBRACKET expression RBRACKET
+;
+
+enum_access:
+    IDENTIFIER COLON IDENTIFIER
 ;
 
 member_access:
