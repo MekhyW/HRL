@@ -207,24 +207,27 @@ private:
 
 class CallProgramNode : public Node {
 public:
-    CallProgramNode(string program_name, const vector<string>& args) : program_name(program_name), args(args) {type = "CallProgramNode";}
+    CallProgramNode(NodePtr program_name_expression, const vector<NodePtr>& args) : program_name_expression(move(program_name_expression)), args(args) {type = "CallProgramNode";}
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        string program_name = get<string>(program_name_expression->Evaluate(symbol_table, func_table));
+        vector<string> args_strings;
+        for (NodePtr arg : args) { args_strings.push_back(get<string>(arg->Evaluate(symbol_table, func_table))); }
         if (program_name.find(".py") != string::npos) {
-            string command = "python " + program_name + " " + join(args, " ");
+            string command = "python " + program_name + " " + join(args_strings, " ");
             return EvalResult(system(command.c_str()));
         }
         else if (program_name.find(".lua") != string::npos) {
-            string command = "lua " + program_name + " " + join(args, " ");
+            string command = "lua " + program_name + " " + join(args_strings, " ");
             return EvalResult(system(command.c_str()));
         }
         else {
-            string command = "./" + program_name + " " + join(args, " ");
+            string command = "./" + program_name + " " + join(args_strings, " ");
             return EvalResult(system(command.c_str()));
         }
     }
 private:
-    string program_name;
-    vector<string> args;
+    NodePtr program_name_expression;
+    vector<NodePtr> args;
 };
 
 class VarDeclareNode : public Node {
@@ -299,7 +302,7 @@ public:
     virtual EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
         if (identifier == "print") { return make_shared<PrintNode>(args[0])->Evaluate(symbol_table, func_table); }
         if (identifier == "read") { return make_shared<ReadNode>()->Evaluate(symbol_table, func_table); }
-        if (identifier == "callprogram") { return make_shared<CallProgramNode>(args[0]->Evaluate(symbol_table, func_table), vector<string>(args.begin() + 1, args.end()))->Evaluate(symbol_table, func_table); }
+        if (identifier == "callprogram") { return make_shared<CallProgramNode>(args[0], vector<NodePtr>(args.begin() + 1, args.end()))->Evaluate(symbol_table, func_table); }
         FuncInfo func_info = func_table.getFunction(identifier);
         if (func_info.args.size() != args.size()) { throw invalid_argument("Function " + identifier + " expects " + to_string(func_info.args.size()) + " arguments, but " + to_string(args.size()) + " were given"); }
         SymbolTable new_symbol_table = SymbolTable();
