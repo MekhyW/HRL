@@ -18,6 +18,8 @@ class SymbolTable {
 private:
     unordered_map<string, EvalResult> variables;
     unordered_map<string, unordered_map<string, int>> enums;
+    unordered_map<string, vector<pair<string, string>>> struct_definitions;
+    unordered_map<string, unordered_map<string, EvalResult>> struct_instances;
 
 public:
     void setVariable(const string& name, EvalResult value, bool declare = false) {
@@ -45,6 +47,28 @@ public:
         } else {
             throw invalid_argument("Undefined enum or value: " + enumName + "::" + valueName);
         }
+    }
+
+    void define_struct(const string& name, const vector<pair<string, string>>& fields) {
+        struct_definitions[name] = fields;
+    }
+
+    void create_struct_instance(const string& instance_name, const string& struct_name) {
+        if (struct_definitions.find(struct_name) == struct_definitions.end()) {
+            throw runtime_error("Struct '" + struct_name + "' not defined.");
+        }
+        struct_instances[instance_name] = unordered_map<string, EvalResult>();
+        for (const auto& field : struct_definitions[struct_name]) {
+            struct_instances[instance_name][field.second] = {};
+        }
+    }
+
+    unordered_map<string, EvalResult>* get_struct_instance(const string& instance_name) {
+        auto iter = struct_instances.find(instance_name);
+        if (iter != struct_instances.end()) {
+            return &iter->second;
+        }
+        return nullptr;
     }
 };
 

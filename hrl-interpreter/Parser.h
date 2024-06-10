@@ -38,6 +38,8 @@ public:
             return parse_function_declaration();
         } else if (current_token.type == "ENUM") {
             return parse_enum_declaration();
+        } else if (current_token.type == "STRUCT") {
+            return parse_struct_declaration();
         } else {
             return parse_assignment_or_function_call();
         }
@@ -68,6 +70,42 @@ public:
         current_token = tokenizer.selectNext();
         return make_shared<EnumNode>(enum_name, values);
     }
+
+    shared_ptr<Node> parse_struct_declaration() {
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "IDENTIFIER") {
+            throw invalid_argument("Expected identifier after 'struct'");
+        }
+        string struct_name = current_token.valueString;
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "LBRACE") {
+            throw invalid_argument("Expected '{' after struct name");
+        }
+        current_token = tokenizer.selectNext();
+        vector<pair<string, string>> fields;
+        while (current_token.type != "RBRACE") {
+            if (current_token.type != "IDENTIFIER") {
+                throw invalid_argument("Expected type identifier in struct field declaration");
+            }
+            string field_type = current_token.valueString;
+            current_token = tokenizer.selectNext();
+            if (current_token.type != "IDENTIFIER") {
+                throw invalid_argument("Expected field name in struct field declaration");
+            }
+            string field_name = current_token.valueString;
+            fields.emplace_back(field_type, field_name);
+
+            current_token = tokenizer.selectNext();
+            if (current_token.type == "COMMA") {
+                current_token = tokenizer.selectNext();
+            } else if (current_token.type != "RBRACE") {
+                throw invalid_argument("Expected '}' or ',' in struct declaration");
+            }
+        }
+        current_token = tokenizer.selectNext();
+        return make_shared<StructNode>(struct_name, fields);
+    }
+
 
     shared_ptr<Node> parse_const_declaration() {
         current_token = tokenizer.selectNext();
@@ -318,13 +356,12 @@ public:
             current_token = tokenizer.selectNext();
             if (current_token.type == "DOT") {
                 current_token = tokenizer.selectNext();
-                if (current_token.type != "IDENTIFIER") {
-                    throw invalid_argument("Expected identifier after '.' in enum value access");
-                }
-                string value = current_token.valueString;
+                if (current_token.type != "IDENTIFIER") { throw invalid_argument("Expected field name after '.'"); }
+                string field_name = current_token.valueString;
                 current_token = tokenizer.selectNext();
-                return make_shared<EnumValNode>(identifier, value);
-            } else if (current_token.type == "LPAREN") {
+                return make_shared<StructFieldNode>(identifier, field_name);
+            }
+            else if (current_token.type == "LPAREN") {
                 current_token = tokenizer.selectNext();
                 vector<shared_ptr<Node>> args;
                 while (current_token.type != "RPAREN") {
@@ -336,9 +373,20 @@ public:
                 current_token = tokenizer.selectNext();
                 return make_shared<FuncCallNode>(identifier, args);
             }
-            return make_shared<VarNode>(identifier);
+            else if (current_token.type == "COLON") {
+                current_token = tokenizer.selectNext();
+                if (current_token.type != "IDENTIFIER") {
+                    throw invalid_argument("Expected enum value after '::'");
+                }
+                string enum_value = current_token.valueString;
+                current_token = tokenizer.selectNext();
+                return make_shared<EnumValNode>(identifier, enum_value);
+            }
+            else {
+                return make_shared<VarNode>(identifier);
+            }
         }
-        throw invalid_argument("Unexpected token in parse_factor");
+        throw invalid_argument("Unexpected token: " + current_token.type);
     }
 
     shared_ptr<Node> run(const string& code) {

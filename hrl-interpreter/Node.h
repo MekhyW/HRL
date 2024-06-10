@@ -359,3 +359,34 @@ private:
     string enumName;
     string valueName;
 };
+
+class StructNode : public Node {
+public:
+    StructNode(const string& name, const vector<pair<string, string>>& field_list) : struct_name(name), fields(field_list) { type = "StructNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        symbol_table.define_struct(struct_name, fields);
+        return EvalResult("NULL");
+    }
+private:
+    string struct_name;
+    vector<pair<string, string>> fields;
+};
+
+class StructFieldNode : public Node {
+public:
+    StructFieldNode(const string& sname, const string& fname) : struct_instance_name(sname), field_name(fname) { type = "StructFieldNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        auto struct_instance = symbol_table.get_struct_instance(struct_instance_name);
+        if (!struct_instance) {
+            throw runtime_error("Struct instance '" + struct_instance_name + "' not found.");
+        }
+        auto field_iter = struct_instance->find(field_name);
+        if (field_iter == struct_instance->end()) {
+            throw runtime_error("Field '" + field_name + "' not found in struct instance '" + struct_instance_name + "'.");
+        }
+        return field_iter->second;
+    }
+private:
+    string struct_instance_name;
+    string field_name;
+};
