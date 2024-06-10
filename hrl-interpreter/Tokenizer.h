@@ -73,13 +73,34 @@ public:
             char current_char = source[position];
             if (isspace(current_char)) {
                 position++;
-            } else if (isdigit(current_char)) {
+            } else if (isdigit(current_char) || current_char == '.') {
                 next.type = "NUMBER_LITERAL";
-                next.value = current_char - '0';
-                position++;
-                while (position < source.size() && isdigit(source[position])) {
-                    next.value = next.value * 10 + (source[position] - '0');
+                next.valueString = "";
+                bool hasDecimal = (current_char == '.');
+                if (!hasDecimal) {
+                    next.valueString += current_char;
                     position++;
+                    while (position < source.size() && (isdigit(source[position]) || source[position] == '.')) {
+                        if (source[position] == '.' && !hasDecimal) {
+                            hasDecimal = true;
+                        } else if (source[position] == '.' && hasDecimal) {
+                            throw invalid_argument("Invalid floating-point literal: " + next.valueString + source[position]);
+                        }
+                        next.valueString += source[position];
+                        position++;
+                    }
+                    next.value = stoi(next.valueString);
+                } else {
+                    next.valueString = ".";
+                    position++;
+                    while (position < source.size() && isdigit(source[position])) {
+                        next.valueString += source[position];
+                        position++;
+                    }
+                    if (next.valueString == ".") {
+                        throw invalid_argument("Invalid floating-point literal: " + next.valueString);
+                    }
+                    next.value = stod(next.valueString);
                 }
                 return;
             } else if (isalpha(current_char) || current_char == '_') {

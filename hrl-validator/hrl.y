@@ -8,6 +8,7 @@ int yylex(void);
 typedef struct {
     char *str;
     int num;
+    double real;
 } YYSTYPE;
 
 #define YYSTYPE_IS_DECLARED 1
@@ -16,6 +17,7 @@ typedef struct {
 %union {
     char *str;
     int num;
+    double real;
 }
 
 %token <str> IDENTIFIER STRING_LITERAL
