@@ -34,7 +34,7 @@ public:
 
     void setEnum(const string& name, const vector<string>& values) {
         unordered_map<string, int> enumValues;
-        for (int i = 0; i < values.size(); ++i) {
+        for (size_t i = 0; i < values.size(); ++i) {
             enumValues[values[i]] = i;
         }
         enums[name] = enumValues;

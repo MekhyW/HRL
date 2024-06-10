@@ -306,7 +306,7 @@ public:
         FuncInfo func_info = func_table.getFunction(identifier);
         if (func_info.args.size() != args.size()) { throw invalid_argument("Function " + identifier + " expects " + to_string(func_info.args.size()) + " arguments, but " + to_string(args.size()) + " were given"); }
         SymbolTable new_symbol_table = SymbolTable();
-        for (int i = 0; i < func_info.args.size(); i++) { new_symbol_table.setVariable(func_info.args[i], args[i]->Evaluate(symbol_table, func_table), true); }
+        for (size_t i = 0; i < func_info.args.size(); i++) { new_symbol_table.setVariable(func_info.args[i], args[i]->Evaluate(symbol_table, func_table), true); }
         return func_info.block->Evaluate(new_symbol_table, func_table);
     }
 private:
