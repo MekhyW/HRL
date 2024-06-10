@@ -204,3 +204,27 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 Generated using DrawGrammar (https://jacquev6.github.io/DrawGrammar/)
 
 ![Syntactic Diagram](syntactic_diagram.png)
+
+## Usage
+
+To use the HRL language, you can write your code in a text editor and save it with a `.hr` extension. You can then use hrl-validator to check the syntax of your code and hrl-interpreter to run your code.
+
+### Syntax Validation
+
+```bash
+cd hrl-validator
+make
+./hrl_validator < <path-to-your-hrl-file>
+```
+
+### Interpretation
+
+```bash
+cd hrl-interpreter
+make
+./hrl_interpreter <path-to-your-hrl-file>
+```
+
+## Examples
+
+You can find examples of HRL code in the `examples` directory.
