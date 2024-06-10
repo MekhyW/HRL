@@ -48,6 +48,10 @@ public:
             return parse_while_statement();
         } else if (current_token.type == "RETURN") {
             return parse_return_statement();
+        } else if (current_token.type == "BREAK") {
+            return parse_break_statement();
+        } else if (current_token.type == "CONTINUE") {
+            return parse_continue_statement();
         } else if (current_token.type == "FUNCTION") {
             return parse_function_declaration();
         } else if (current_token.type == "ENUM") {
@@ -241,6 +245,24 @@ public:
         }
         current_token = tokenizer.selectNext();
         return make_shared<ReturnNode>(return_node);
+    }
+
+    shared_ptr<Node> parse_break_statement() {
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "SEMICOLON") {
+            throw invalid_argument("Expected ';' after break statement");
+        }
+        current_token = tokenizer.selectNext();
+        return make_shared<BreakNode>();
+    }
+
+    shared_ptr<Node> parse_continue_statement() {
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "SEMICOLON") {
+            throw invalid_argument("Expected ';' after continue statement");
+        }
+        current_token = tokenizer.selectNext();
+        return make_shared<ContinueNode>();
     }
 
     shared_ptr<Node> parse_function_declaration() {

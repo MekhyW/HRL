@@ -343,13 +343,35 @@ private:
     NodePtr return_node;
 };
 
+class BreakNode : public Node {
+public:
+    BreakNode() {type = "BreakNode";}
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        throw runtime_error("Break statement");
+    }
+};
+
+class ContinueNode : public Node {
+public:
+    ContinueNode() {type = "ContinueNode";}
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        throw runtime_error("Continue statement");
+    }
+};
+
 class BlockNode : public Node {
 public:
     BlockNode() {type = "BlockNode";}
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        bool should_break = false;
         for (const auto& statement : statements) {
-            if (statement->type == "ReturnNode") { return statement->Evaluate(symbol_table, func_table); }
-            else { statement->Evaluate(symbol_table, func_table); }
+            if (should_break) { break; }
+            try { statement->Evaluate(symbol_table, func_table); } 
+            catch (const runtime_error& e) {
+                if (string(e.what()) == "Break statement") { should_break = true; } 
+                else if (string(e.what()) == "Continue statement") { continue; } 
+                else { throw; }
+            }
         }
         return EvalResult("NULL");
     }
