@@ -335,3 +335,27 @@ public:
         return EvalResult("NULL");
     }
 };
+
+class EnumNode : public Node {
+public:
+    EnumNode(string name, vector<string> values) : name(name), values(values) { type = "EnumNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        symbol_table.setEnum(name, values);
+        return EvalResult("NULL");
+    }
+private:
+    string name;
+    vector<string> values;
+};
+
+class EnumValNode : public Node {
+public:
+    EnumValNode(string enumName, string valueName) : enumName(enumName), valueName(valueName) { type = "EnumValNode"; }
+    EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
+        int value = symbol_table.getEnumValue(enumName, valueName);
+        return EvalResult(value);
+    }
+private:
+    string enumName;
+    string valueName;
+};

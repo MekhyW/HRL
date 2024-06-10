@@ -36,9 +36,37 @@ public:
             return parse_return_statement();
         } else if (current_token.type == "FUNCTION") {
             return parse_function_declaration();
+        } else if (current_token.type == "ENUM") {
+            return parse_enum_declaration();
         } else {
             return parse_assignment_or_function_call();
         }
+    }
+
+    shared_ptr<Node> parse_enum_declaration() {
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "IDENTIFIER") {
+            throw invalid_argument("Expected identifier after 'enum'");
+        }
+        string enum_name = current_token.valueString;
+        current_token = tokenizer.selectNext();
+        if (current_token.type != "LBRACE") {
+            throw invalid_argument("Expected '{' after enum name");
+        }
+        current_token = tokenizer.selectNext();
+        vector<string> values;
+        while (current_token.type != "RBRACE") {
+            if (current_token.type != "IDENTIFIER") {
+                throw invalid_argument("Expected identifier in enum values");
+            }
+            values.push_back(current_token.valueString);
+            current_token = tokenizer.selectNext();
+            if (current_token.type == "COMMA") {
+                current_token = tokenizer.selectNext();
+            }
+        }
+        current_token = tokenizer.selectNext();
+        return make_shared<EnumNode>(enum_name, values);
     }
 
     shared_ptr<Node> parse_const_declaration() {
@@ -285,10 +313,18 @@ public:
             current_token = tokenizer.selectNext();
             return make_shared<UnOpNode>("!", parse_factor());
         }
-        else {
-            string identifier = current_token.type;
+        else if (current_token.type == "IDENTIFIER") {
+            string identifier = current_token.valueString;
             current_token = tokenizer.selectNext();
-            if (current_token.type == "LPAREN") {
+            if (current_token.type == "DOT") {
+                current_token = tokenizer.selectNext();
+                if (current_token.type != "IDENTIFIER") {
+                    throw invalid_argument("Expected identifier after '.' in enum value access");
+                }
+                string value = current_token.valueString;
+                current_token = tokenizer.selectNext();
+                return make_shared<EnumValNode>(identifier, value);
+            } else if (current_token.type == "LPAREN") {
                 current_token = tokenizer.selectNext();
                 vector<shared_ptr<Node>> args;
                 while (current_token.type != "RPAREN") {
@@ -302,6 +338,7 @@ public:
             }
             return make_shared<VarNode>(identifier);
         }
+        throw invalid_argument("Unexpected token in parse_factor");
     }
 
     shared_ptr<Node> run(const string& code) {
