@@ -24,9 +24,13 @@ public:
 
     shared_ptr<Node> parse_block() {
         shared_ptr<Node> block_node = make_shared<BlockNode>();
+        if (current_token.type != "LBRACE") { throw invalid_argument("Expected '{' at start of block"); }
+        current_token = tokenizer.selectNext();
         while (current_token.type != "EOF" && current_token.type != "RBRACE" && current_token.type != "ELSE") {
             block_node->add_statement(parse_statement());
         }
+        if (current_token.type != "RBRACE") { throw invalid_argument("Expected '}' at end of block"); }
+        current_token = tokenizer.selectNext();
         return block_node;
     }
 
@@ -404,7 +408,7 @@ public:
             current_token = tokenizer.selectNext();
             return make_shared<IntValNode>(value);
         }
-        else if (current_token.type == "STRING") {
+        else if (current_token.type == "STRING_LITERAL") {
             string value = current_token.valueString;
             current_token = tokenizer.selectNext();
             return make_shared<StringValNode>(value);
