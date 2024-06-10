@@ -172,7 +172,6 @@ function waitForImageCaptureTrigger(sessionId: String): String {
 <li>BLOCK = "{", {STATEMENTS}, "}";
 <li>WHILE_STATEMENT = "while", "(", EXPRESSION, ")", BLOCK;
 <li>IF_STATEMENT = "if", "(", EXPRESSION, ")", BLOCK, ["else", BLOCK];
-<li>CASE_BLOCK = "case", EXPRESSION, ":", STATEMENTS;
 <li>FUNCTION_CALL_STATEMENT = IDENTIFIER, "(", [ARGUMENTS], ")";
 <li>ARGUMENTS = [EXPRESSION, { ",", EXPRESSION }];
 <li>FUNCTION_DECLARATION = "function", IDENTIFIER, "(", PARAMETERS, ")", ":", TYPE, BLOCK;
@@ -212,18 +211,22 @@ To use the HRL language, you can write your code in a text editor and save it wi
 
 ### Syntax Validation
 
+The Syntax validator is a tool that checks if the syntax of the HRL code is correct, made using the Flex and Bison tools, in C.
+
 ```bash
 cd hrl-validator
 make
-./hrl_validator < <path-to-your-hrl-file>
+./hrl_validator < <path-to-your-hr-file>
 ```
 
 ### Interpretation (prototype; behaviors and pub/sub system not implemented yet)
 
+The Interpreter is a full implementation of the HRL language in C++.
+
 ```bash
 cd hrl-interpreter
 make
-./hrl_interpreter <path-to-your-hrl-file>
+./hrl_interpreter <path-to-your-hr-file>
 ```
 
 ## Examples

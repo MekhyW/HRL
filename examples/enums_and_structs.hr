@@ -1,0 +1,54 @@
+setup {
+    enum SensorState {
+        Idle,
+        Active,
+        Error
+    };
+
+    struct SensorReading {
+        sensor_name: string = "";
+        state: SensorState = SensorState:Idle;
+        value: int = 0;
+    };
+
+    LidarReading: SensorReading;
+    UltrasonicReading: SensorReading;
+    InfraredReading: SensorReading;
+
+    LidarReading.sensor_name = "Lidar";
+    LidarReading.state = SensorState:Active;
+    LidarReading.value = 3;
+
+    UltrasonicReading.sensor_name = "Ultrasonic";
+    UltrasonicReading.state = SensorState:Idle;
+    UltrasonicReading.value = 0;
+
+    InfraredReading.sensor_name = "Infrared";
+    InfraredReading.state = SensorState:Error;
+    InfraredReading.value = -1;
+
+    function printSensorReading(reading: SensorReading): void {
+        print("Sensor: " + reading.sensor_name + ", State: " + reading.state + ", Value: " + reading.value);
+    };
+
+    function handleSensorReading(reading: SensorReading): void {
+        if (reading.state == SensorState:Idle) {
+            print(reading.sensor_name + " is idle.");
+        } else if (reading.state == SensorState:Active) {
+            print(reading.sensor_name + " is active with value: " + reading.value);
+        } else if (reading.state == SensorState:Error) {
+            print("Error detected in " + reading.sensor_name + "!");
+        }
+    };
+}
+
+main {
+    printSensorReading(LidarReading);
+    handleSensorReading(LidarReading);
+
+    printSensorReading(UltrasonicReading);
+    handleSensorReading(UltrasonicReading);
+
+    printSensorReading(InfraredReading);
+    handleSensorReading(InfraredReading);
+}

@@ -1,0 +1,90 @@
+-- Setup block will be executed once at the beginning of execution
+setup {
+    -- Define context IDs
+    enum Context {
+        General,
+        Task,
+        ErrorHandling
+    }
+
+    -- Define session data structure
+    struct Session {
+        id: String,
+        context: Context,
+        -- Other session data
+    }
+
+    -- Define pub/sub topics
+    enum Topic {
+        UserInput,
+        TaskCompleted,
+        ErrorOccurred
+    }
+
+    -- Context-specific behaviors
+
+    -- Behavior for the general context
+    behavior generalContext(session: Session) {
+        -- Listen for user input
+        userInput = read();
+
+        -- Publish user input to topic
+        publishToTopic(Topic.UserInput, userInput);
+
+        -- Process user input based on context
+        if (userInput == "start task") {
+            switchContext(session, Context.Task);
+        } else if (userInput == "error") {
+            switchContext(session, Context.ErrorHandling);
+        } else {
+            respond(session.id, "Sorry, I didn't understand.");
+        }
+    }
+
+    -- Behavior for the task context
+    behavior taskContext(session: Session) {
+        -- Perform task-specific operations
+        performTask(session.id);
+
+        -- Publish task completion to topic
+        publishToTopic(Topic.TaskCompleted, session.id);
+
+        -- Listen for user input to switch context
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "exit") {
+            switchContext(session, Context.General);
+        }
+    }
+
+    -- Behavior for the error handling context
+    behavior errorHandlingContext(session: Session) {
+        -- Handle errors
+        handleError(session.id);
+
+        -- Publish error to topic
+        publishToTopic(Topic.ErrorOccurred, session.id);
+
+        -- Listen for user input to switch context
+        const userInput = waitForUserInput(session.id);
+        if (userInput == "retry") {
+            switchContext(session, Context.General);
+        }
+    }
+
+    -- Start pub/sub system
+    startPubSubSystem();
+}
+
+-- Main block will be executed in an infinite loop after setup
+main {
+    -- Create sessions for each unattended chat
+    sessions = createSessions();
+
+    -- Start context-specific behaviors for each session in parallel
+    while (!sessions.isEmpty()) {
+        session = sessions.pop();
+        threadloop startBehavior(generalContext, session);
+        threadloop startBehavior(taskContext, session);
+        threadloop startBehavior(errorHandlingContext, session);
+    }
+}
