@@ -1,4 +1,5 @@
 #include <omp.h>
+#include <thread>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -42,8 +43,18 @@ class BinOpNode : public Node {
 public:
     BinOpNode(string op, NodePtr left, NodePtr right) : op(op), left(move(left)), right(move(right)) {type = "BinOpNode";}
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        EvalResult right_value = right->Evaluate(symbol_table, func_table);
-        EvalResult left_value = left->Evaluate(symbol_table, func_table);
+        EvalResult right_value, left_value;
+        #pragma omp parallel sections
+        {
+            #pragma omp section
+            {
+                right_value = right->Evaluate(symbol_table, func_table);
+            }
+            #pragma omp section
+            {
+                left_value = left->Evaluate(symbol_table, func_table);
+            }
+        }
         if (op != ".." && (holds_alternative<string>(left_value) != holds_alternative<string>(right_value))) {
             throw invalid_argument("Unsupported operation on string type");
         }
@@ -211,8 +222,11 @@ public:
     CallProgramNode(NodePtr program_name_expression, const vector<NodePtr>& args) : program_name_expression(move(program_name_expression)), args(args) {type = "CallProgramNode";}
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
         string program_name = get<string>(program_name_expression->Evaluate(symbol_table, func_table));
-        vector<string> args_strings;
-        for (NodePtr arg : args) { args_strings.push_back(get<string>(arg->Evaluate(symbol_table, func_table))); }
+        vector<string> args_strings(args.size());
+        #pragma omp parallel for
+        for (size_t i = 0; i < args.size(); ++i) {
+            args_strings[i] = get<string>(args[i]->Evaluate(symbol_table, func_table));
+        }
         if (program_name.find(".py") != string::npos) {
             string command = "python " + program_name + " " + join(args_strings, " ");
             return EvalResult(system(command.c_str()));
@@ -236,9 +250,13 @@ public:
     VarDeclareNode(string identifier, NodePtr expression = make_shared<IntValNode>(0))
         : identifier(identifier), expression(move(expression)) {type = "VarDeclareNode";}
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        EvalResult result = expression->Evaluate(symbol_table, func_table);
-        if (result == EvalResult("NULL")) { throw invalid_argument("Cannot assign NULL value to variable " + identifier); }
-        symbol_table.setVariable(identifier, result, true);
+        EvalResult result;
+        #pragma omp critical
+        {
+            result = expression->Evaluate(symbol_table, func_table);
+            if (result == EvalResult("NULL")) { throw invalid_argument("Cannot assign NULL value to variable " + identifier); }
+            symbol_table.setVariable(identifier, result, true);
+        }
         return result;
     }
 private:
@@ -408,8 +426,9 @@ class ArrayNode : public Node {
 public:
     ArrayNode(const vector<NodePtr>& nodes) : nodes(nodes) { type = "ArrayNode"; }
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        for (const auto& node : nodes) {
-            node->Evaluate(symbol_table, func_table);
+        #pragma omp parallel for
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            nodes[i]->Evaluate(symbol_table, func_table);
         }
         return EvalResult("NULL");
     }
@@ -438,10 +457,10 @@ class ThreadLoopNode : public Node {
 public:
     ThreadLoopNode(const string& name, vector<string> args, NodePtr block) : name(name), args(move(args)), block(move(block)) { type = "ThreadLoopNode"; }
     EvalResult Evaluate(SymbolTable& symbol_table, FuncTable& func_table) const override {
-        #pragma omp parallel
-        {
+        thread t([&](){
             while (true) { block->Evaluate(symbol_table, func_table); }
-        }
+        });
+        t.detach();
         return EvalResult("NULL");
     }
 private:

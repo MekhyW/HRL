@@ -403,7 +403,7 @@ public:
     }
 
     shared_ptr<Node> parse_factor() {
-        if (current_token.type == "NUMBER") {
+        if (current_token.type == "NUMBER_LITERAL") {
             int value = current_token.value;
             current_token = tokenizer.selectNext();
             return make_shared<IntValNode>(value);
