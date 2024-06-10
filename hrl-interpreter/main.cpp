@@ -14,7 +14,7 @@ FuncTable func_table;
 int main(int argc, char *argv[]) {
     // Read HRL code from file
     if (argc != 2) {
-        cout << "Usage: " << argv[0] << " <input.hrl>" << endl;
+        cout << "Usage: " << argv[0] << " <input.hr>" << endl;
         return 1;
     }
     string filename = argv[1];

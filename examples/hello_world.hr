@@ -1,0 +1,7 @@
+setup {
+    print("Hello, World!");
+}
+
+main {
+
+}
